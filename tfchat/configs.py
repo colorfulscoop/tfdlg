@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class Config:
+class Config(BaseModel):
     num_layers: int
     d_model: int
     num_heads: int
@@ -11,8 +10,7 @@ class Config:
     max_position_encoding: int
 
 
-@dataclass
-class TransformerConfig:
+class TransformerConfig(BaseModel):
     num_layers: int = 6
     d_model: int = 512
     num_heads: int = 8

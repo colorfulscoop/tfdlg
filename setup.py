@@ -11,6 +11,7 @@ setuptools.setup(
         # "tensorflow-hub",
         # Install Scikit-learn
         # "scikit-learn>=0.22"
+        "pydantic==1.6.1",
     ],
     version="0.1.0",
     author="Noriyuki Abe",

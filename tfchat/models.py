@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from dataclasses import asdict
 
 
 class PositionalEncoding(keras.layers.Layer):
@@ -261,7 +260,7 @@ def create_combined_mask(seq):
 class PostLNDecoder(tf.keras.Model):
     def __init__(self, config):
         super().__init__()
-        self._decoder = Decoder(transformer_cls=PostLN, **asdict(config))
+        self._decoder = Decoder(transformer_cls=PostLN, **config.dict())
 
     def call(self, inputs, training):
         look_ahead_mask = create_combined_mask(inputs)

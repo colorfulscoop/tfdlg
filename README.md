@@ -5,7 +5,7 @@ TfChat provides a **t**rans**f**ormer-based response generation models with **T*
 
 ## Installation
 
-Prepare Python >= 3.8 first. Then run `pip` to install this package from GitHub.
+Prepare Python >= 3.6 first. Then run `pip` to install this package from GitHub.
 
 ```sh
 $ pip install git+https://github.com/noriyukipy/tfchat
