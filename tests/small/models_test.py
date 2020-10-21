@@ -1,4 +1,3 @@
-import tensorflow as tf
 import tensorflow.keras as keras
 import numpy as np
 from tfchat.models import PositionalEncoding
@@ -7,6 +6,11 @@ from tfchat.models import MultiHeadAttention
 from tfchat.models import PointwiseFeedForwardNetwork
 from tfchat.models import PostLN
 from tfchat.models import TransposedEmbedding
+from tfchat.models import Decoder
+from tfchat.models import create_padding_mask
+from tfchat.models import create_look_ahead_mask
+from tfchat.models import create_combined_mask
+from tfchat.models import PostLNDecoder
 
 
 def test_position_encoding():
@@ -99,3 +103,64 @@ def test_transposed_embedding():
     inputs = np.zeros((batch_size, embed_dim), dtype=np.float32)
     got = temb(inputs)
     assert got.shape == (batch_size, vocab_size)
+
+
+def test_decoder():
+    transformer_cls = PostLN
+    num_layers = 4
+    d_model = 128
+    num_heads = 8
+    d_ff = 256
+    vocab_size = 1000
+    max_position_encoding = 100
+
+    decoder = Decoder(transformer_cls, num_layers, d_model, num_heads,
+                      d_ff, vocab_size, max_position_encoding)
+
+    batch_size = 2
+    seq_len = 10
+    inputs = np.zeros((batch_size, seq_len), dtype=np.int32)
+
+    got = decoder(inputs, training=False, look_ahead_mask=None)
+
+    assert got.shape == (batch_size, seq_len, vocab_size)
+
+
+def test_create_padding_mask():
+    seq = np.array([[1, 2, 0], [0, 2, 0]], dtype=np.int32)
+    res = create_padding_mask(seq)
+    assert np.all(res.numpy() == [[[[0, 0, 1]]], [[[1, 0, 1]]]])
+
+
+def test_create_look_ahead_mask():
+    out = create_look_ahead_mask(3)
+    assert np.all(out.numpy() == [[0, 1, 1], [0, 0, 1], [0, 0, 0]])
+
+
+def test_create_combined_mask():
+    seq = np.array([[1, 2, 0], [0, 2, 0]], dtype=np.int32)
+    out = create_combined_mask(seq)
+    assert np.all(out.numpy() == [[[[0, 1, 1], [0, 0, 1], [0, 0, 1]]],
+                                  [[[1, 1, 1], [1, 0, 1], [1, 0, 1]]]])
+
+
+def test_post_ln_decoder():
+    num_layers = 4
+    d_model = 128
+    num_heads = 8
+    d_ff = 256
+    vocab_size = 1000
+    max_position_encoding = 100
+
+    gpt = PostLNDecoder(num_layers=num_layers, d_model=d_model,
+                        num_heads=num_heads,
+                        d_ff=d_ff, vocab_size=vocab_size,
+                        max_position_encoding=max_position_encoding)
+
+    batch_size = 2
+    seq_len = 10
+    inputs = np.ones((batch_size, seq_len), dtype=np.int32)
+
+    got = gpt(inputs, training=False)
+
+    assert got.shape == (batch_size, seq_len, vocab_size)

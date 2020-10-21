@@ -186,3 +186,83 @@ class TransposedEmbedding(keras.layers.Layer):
         output = inputs @ self._transposed_weights
         return output
 
+
+class Decoder(tf.keras.layers.Layer):
+    def __init__(self, transformer_cls, num_layers, d_model, num_heads,
+                 d_ff, vocab_size, max_position_encoding, rate=0.1, epsilon=1e-6):
+        super().__init__()
+
+        self._embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self._pos_enc = PositionalEncoding(embed_size=d_model,
+                                           max_steps=max_position_encoding)
+
+        self._dec_layers = [transformer_cls(d_model=d_model,
+                                            num_heads=num_heads,
+                                            d_ff=d_ff,
+                                            rate=rate,
+                                            epsilon=epsilon)
+                            for _ in range(num_layers)]
+        self._dropout = tf.keras.layers.Dropout(rate=rate)
+        self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
+
+        self._num_layers = num_layers
+        self._d_model = d_model
+
+    def call(self, inputs, training, look_ahead_mask):
+        """
+        Args:
+            inputs: shape == (batch_size, seq_len)
+
+        Returns: shape == (batch_size, seq_len, d_model)
+        """
+        # seq_len = tf.shape(inputs)[1]
+
+        x = self._embedding(inputs)  # shape: (batch_size, seq_len, d_model)
+        x *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
+        x += self._pos_enc(x)
+        # Residual dropout: Dropout(Embed(x) + Pos(i))
+        x = self._dropout(x, training=training)
+
+        for i in range(self._num_layers):
+            x = self._dec_layers[i](inputs=x, training=training,
+                                    look_ahead_mask=look_ahead_mask)
+
+        x = self._output_layer(x)
+
+        return x
+
+
+def create_padding_mask(seq):
+    """
+    Args:
+        seq: shape == (batch_size, seq_len)
+
+    Returns: shape == (batch_size, 1, 1, seq_len)
+    """
+    mask = tf.cast(tf.math.equal(seq, 0), tf.float32)
+    batch_size = tf.shape(seq)[0]
+    seq_len = tf.shape(seq)[-1]
+    out = tf.reshape(mask, (batch_size, 1, 1, seq_len))
+
+    return out
+
+
+def create_look_ahead_mask(seq_len):
+    mask = 1 - tf.linalg.band_part(tf.ones((seq_len, seq_len)), -1, 0)  # shape == (seq_len, seq_len)
+    return mask
+
+
+def create_combined_mask(seq):
+    seq_len = tf.shape(seq)[-1]
+    return tf.maximum(create_padding_mask(seq), create_look_ahead_mask(seq_len))
+
+
+class PostLNDecoder(tf.keras.Model):
+    def __init__(self, **args):
+        super().__init__()
+        self._decoder = Decoder(transformer_cls=PostLN, **args)
+
+    def call(self, inputs, training):
+        look_ahead_mask = create_combined_mask(inputs)
+        x = self._decoder(inputs, training=training, look_ahead_mask=look_ahead_mask)
+        return x
