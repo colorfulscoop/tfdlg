@@ -8,6 +8,8 @@ class Config(BaseModel):
     d_ff: int
     vocab_size: int
     max_position_encoding: int
+    rate: float
+    epsilon: float
 
 
 class TransformerConfig(BaseModel):
@@ -17,3 +19,5 @@ class TransformerConfig(BaseModel):
     d_ff: int = 2048
     vocab_size: int = 32000
     max_position_encoding: int = 512
+    rate: float = 0.1
+    epsilon: float = 1e-6

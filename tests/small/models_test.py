@@ -154,7 +154,9 @@ def test_PostLNDecoder():
         num_heads=8,
         d_ff=256,
         vocab_size=1000,
-        max_position_encoding=100
+        max_position_encoding=100,
+        rate=0.1,
+        epsilon=1e-6,
     )
 
     gpt = PostLNDecoder(config)
@@ -175,7 +177,9 @@ def test_PostLNDecoder_fit():
         num_heads=8,
         d_ff=256,
         vocab_size=1000,
-        max_position_encoding=100
+        max_position_encoding=100,
+        rate=0.1,
+        epsilon=1e-6,
     )
 
     model = PostLNDecoder(config)
