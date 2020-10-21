@@ -13,6 +13,7 @@ from tfchat.models import create_combined_mask
 from tfchat.models import PostLNDecoder
 from tfchat.losses import PaddingLoss
 from tfchat.optimizers import TransformerScheduler
+from tfchat.configs import Config
 
 
 def test_position_encoding():
@@ -147,17 +148,16 @@ def test_create_combined_mask():
 
 
 def test_PostLNDecoder():
-    num_layers = 4
-    d_model = 128
-    num_heads = 8
-    d_ff = 256
-    vocab_size = 1000
-    max_position_encoding = 100
+    config = Config(
+        num_layers=4,
+        d_model=128,
+        num_heads=8,
+        d_ff=256,
+        vocab_size=1000,
+        max_position_encoding=100
+    )
 
-    gpt = PostLNDecoder(num_layers=num_layers, d_model=d_model,
-                        num_heads=num_heads,
-                        d_ff=d_ff, vocab_size=vocab_size,
-                        max_position_encoding=max_position_encoding)
+    gpt = PostLNDecoder(config)
 
     batch_size = 2
     seq_len = 10
@@ -165,27 +165,23 @@ def test_PostLNDecoder():
 
     got = gpt(inputs, training=False)
 
-    assert got.shape == (batch_size, seq_len, vocab_size)
+    assert got.shape == (batch_size, seq_len, config.vocab_size)
 
 
 def test_PostLNDecoder_fit():
-    num_layers = 4
-    d_model = 128
-    num_heads = 8
-    d_ff = 256
-    vocab_size = 1000
-    max_position_encoding = 100
+    config = Config(
+        num_layers=4,
+        d_model=128,
+        num_heads=8,
+        d_ff=256,
+        vocab_size=1000,
+        max_position_encoding=100
+    )
 
-    model = PostLNDecoder(num_layers=num_layers, d_model=d_model,
-                          num_heads=num_heads,
-                          d_ff=d_ff, vocab_size=vocab_size,
-                          max_position_encoding=max_position_encoding)
+    model = PostLNDecoder(config)
     model.compile(
         loss=PaddingLoss(),
-        optimizer=keras.optimizers.Adam(TransformerScheduler(d_model),
-                                        beta_1=0.9,
-                                        beta_2=0.98,
-                                        epsilon=1e-9),
+        optimizer=keras.optimizers.Adam(),
     )
 
     # Prepare input data
