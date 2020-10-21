@@ -219,7 +219,7 @@ class Decoder(tf.keras.layers.Layer):
 
         x = self._embedding(inputs)  # shape: (batch_size, seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
-        x += self._pos_enc(x)
+        x = self._pos_enc(x)
         # Residual dropout: Dropout(Embed(x) + Pos(i))
         x = self._dropout(x, training=training)
 
