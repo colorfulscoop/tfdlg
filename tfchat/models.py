@@ -203,7 +203,8 @@ class Decoder(tf.keras.layers.Layer):
                                             epsilon=epsilon)
                             for _ in range(num_layers)]
         self._dropout = tf.keras.layers.Dropout(rate=rate)
-        self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
+        #self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
+        self._output_layer = keras.layers.Dense(vocab_size)
 
         self._num_layers = num_layers
         self._d_model = d_model
