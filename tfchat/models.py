@@ -27,7 +27,7 @@ class PositionalEncoding(keras.layers.Layer):
         return inputs + self._positional_embedding[:, :shape[-2], :shape[-1]]
 
 
-def scaled_dot_product_attention(q, k, v, mask, mask_val=-1e9):
+def scaled_dot_product_attention(q, k, v, mask, attention_dropout, mask_val=-1e9):
     """
     where
     - vec_size_q and vec_size k should be equal to calculate scores between query and key
@@ -55,13 +55,16 @@ def scaled_dot_product_attention(q, k, v, mask, mask_val=-1e9):
     # Calculate weight
     weights = tf.nn.softmax(scaled_positionwise_score, axis=-1)
 
+    # Attention dropout
+    weights = attention_dropout(weights)
+
     output = weights @ v  # dim: (..., seq_len_q, d_k)
 
     return output
 
 
 class MultiHeadAttention(keras.layers.Layer):
-    def __init__(self, d_model, num_heads):
+    def __init__(self, d_model, num_heads, attention_dropout_rate):
         super().__init__()
 
         assert d_model % num_heads == 0
@@ -73,6 +76,9 @@ class MultiHeadAttention(keras.layers.Layer):
 
         # Output dense layer to recover the original demension
         self._dense = tf.keras.layers.Dense(d_model)  # matrix shape: (seq_len, d_model)
+
+        # Attention dropout
+        self._attention_dropout = tf.keras.layers.Dropout(rate=attention_dropout_rate)
 
         # Define other attributes
         self._d_model = d_model
@@ -100,7 +106,7 @@ class MultiHeadAttention(keras.layers.Layer):
         k = self._split_heads(batch_size, k)  # output shape: (batch_size, num_heads, seq_len, d_k)
         v = self._split_heads(batch_size, v)  # output shape: (batch_size, num_heads, seq_len, d_k)
 
-        attn = scaled_dot_product_attention(q, k, v, mask)  # output shape: (batch_size, num_heads, seq_len, d_k)
+        attn = scaled_dot_product_attention(q, k, v, mask, self._attention_dropout)  # output shape: (batch_size, num_heads, seq_len, d_k)
         attn = tf.transpose(attn, perm=[0, 2, 1, 3])  # output shape: (batch_size, seq_len, num_heads, d_k)
 
         # Concat attention heads
@@ -160,7 +166,9 @@ class TransposedEmbedding(keras.layers.Layer):
 
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, transformer_cls, num_layers, d_model, num_heads,
-                 d_ff, vocab_size, max_position_encoding, rate=0.1, epsilon=1e-6):
+                 d_ff, vocab_size, max_position_encoding,
+                 residual_dropout_rate, attention_dropout_rate,
+                 epsilon=1e-6):
         super().__init__()
 
         self._embedding = tf.keras.layers.Embedding(vocab_size, d_model)
@@ -170,10 +178,11 @@ class Decoder(tf.keras.layers.Layer):
         self._dec_layers = [transformer_cls(d_model=d_model,
                                             num_heads=num_heads,
                                             d_ff=d_ff,
-                                            rate=rate,
+                                            residual_dropout_rate=residual_dropout_rate,
+                                            attention_dropout_rate=attention_dropout_rate,
                                             epsilon=epsilon)
                             for _ in range(num_layers)]
-        self._dropout = tf.keras.layers.Dropout(rate=rate)
+        self._dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
         #self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
         self._output_layer = keras.layers.Dense(vocab_size)
 
@@ -233,19 +242,22 @@ def create_combined_mask(seq):
 
 
 class PostLN(tf.keras.layers.Layer):
-    def __init__(self, d_model, num_heads, d_ff, rate=0.1, epsilon=1e-6):
+    def __init__(self, d_model, num_heads, d_ff, residual_dropout_rate,
+                 attention_dropout_rate, epsilon=1e-6,
+                 ):
         """
         [TODO] Need to check the default value of parameters - rate and epsilon
         """
         super().__init__()
 
-        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads,    
+                                       attention_dropout_rate=attention_dropout_rate)
         self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._fst_dropout = tf.keras.layers.Dropout(rate=rate)
+        self._fst_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
         self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
         self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._snd_dropout = tf.keras.layers.Dropout(rate=rate)
+        self._snd_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
     def call(self, inputs, training, look_ahead_mask):
         attn = self._mha(inputs, inputs, inputs, mask=look_ahead_mask)
@@ -276,19 +288,22 @@ class PostLNDecoder(tf.keras.Model):
 
 
 class PreLN(tf.keras.layers.Layer):
-    def __init__(self, d_model, num_heads, d_ff, rate=0.1, epsilon=1e-6):
+    def __init__(self, d_model, num_heads, d_ff, residual_dropout_rate,
+                 attention_dropout_rate, epsilon=1e-6,
+                 ):
         """
         [TODO] Need to check the default value of parameters - rate and epsilon
         """
         super().__init__()
 
-        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads,    
+                                       attention_dropout_rate=attention_dropout_rate)
         self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._fst_dropout = tf.keras.layers.Dropout(rate=rate)
+        self._fst_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
         self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
         self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._snd_dropout = tf.keras.layers.Dropout(rate=rate)
+        self._snd_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
     def call(self, inputs, training, look_ahead_mask):
         x = self._fst_layernorm(inputs)

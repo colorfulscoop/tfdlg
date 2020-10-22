@@ -38,7 +38,9 @@ def test_scaled_dot_product_attention():
     k = np.zeros((seq_len_src, d_k), dtype=np.float32)
     v = np.zeros((seq_len_src, d_k), dtype=np.float32)
 
-    assert scaled_dot_product_attention(q, k, v, mask=None).shape == (seq_len_tgt, d_k)
+    dropout = keras.layers.Dropout(rate=0.1)
+
+    assert scaled_dot_product_attention(q, k, v, mask=None, attention_dropout=dropout).shape == (seq_len_tgt, d_k)
 
 
 def test_multi_head_attention():
@@ -52,7 +54,7 @@ def test_multi_head_attention():
     k = np.zeros((batch_size, seq_len_src, d_model), dtype=np.float32)
     v = np.zeros((batch_size, seq_len_src, d_model), dtype=np.float32)
 
-    mh_attn = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+    mh_attn = MultiHeadAttention(d_model=d_model, num_heads=num_heads, attention_dropout_rate=0.1)
     got = mh_attn(q, k, v, mask=None).shape
 
     assert got == (batch_size, seq_len_tgt, d_model)
@@ -76,7 +78,7 @@ def test_post_ln():
     d_model = 128
     num_heads = 8
     d_ff = 256
-    layer = PostLN(d_model=d_model, num_heads=num_heads, d_ff=d_ff)
+    layer = PostLN(d_model=d_model, num_heads=num_heads, d_ff=d_ff, residual_dropout_rate=0.1, attention_dropout_rate=0.1)
 
     batch_size = 2
     seq_len = 10
@@ -118,7 +120,8 @@ def test_decoder():
     max_position_encoding = 100
 
     decoder = Decoder(transformer_cls, num_layers, d_model, num_heads,
-                      d_ff, vocab_size, max_position_encoding)
+                      d_ff, vocab_size, max_position_encoding,
+                      residual_dropout_rate=0.1, attention_dropout_rate=0.1)
 
     batch_size = 2
     seq_len = 10
@@ -155,7 +158,8 @@ def test_PostLNDecoder():
         d_ff=256,
         vocab_size=1000,
         max_position_encoding=100,
-        rate=0.1,
+        residual_dropout_rate=0.1,
+        attention_dropout_rate=0.1,
         epsilon=1e-6,
     )
 
@@ -178,7 +182,8 @@ def test_PostLNDecoder_fit():
         d_ff=256,
         vocab_size=1000,
         max_position_encoding=100,
-        rate=0.1,
+        residual_dropout_rate=0.1,
+        attention_dropout_rate=0.1,
         epsilon=1e-6,
     )
 
