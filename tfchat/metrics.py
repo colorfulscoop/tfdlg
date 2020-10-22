@@ -1,17 +1,23 @@
 from tfchat.losses import PaddingLoss
 import tensorflow as tf
+import numpy as np
 
 
-def perplexity(model, dataset):
+def perplexity(model, dataset, verbose=True):
     loss_fn = PaddingLoss()
 
+    num_batches = 0
+    shapes = []
     num_tokens = []
-    ppls = []
+    losses = []
 
-    for item in dataset.take(3):
+    for item in dataset:
         X, y_true = item
+        shapes.append(y_true.shape)
         mask = tf.math.logical_not(tf.math.equal(y_true, 0))
         y_pred = model(X)
+
+        num_batches += 1
 
         # - (1/N) sum{ log P(x_t|x<t) }
         loss = loss_fn(y_true, y_pred)
@@ -21,10 +27,22 @@ def perplexity(model, dataset):
         num_token = tf.reduce_sum(mask)
 
         # - sum{ log P(x_t|x<t) }
-        part_ppl = loss * num_token
+        part_loss = loss * num_token
 
         num_tokens.append(num_token)
-        ppls.append(part_ppl)
+        losses.append(part_loss)
 
-    log_val = tf.reduce_sum(ppls) / tf.reduce_sum(num_tokens)
-    return tf.math.exp(log_val)
+    num_tokens = tf.reduce_sum(num_tokens)
+    final_loss = tf.reduce_sum(losses) / num_tokens
+
+    stats = {
+        "loss": final_loss.numpy(),
+        "perplexity": tf.math.exp(final_loss).numpy(),
+        "num_batches": num_batches,
+        "num_tokens": num_tokens.numpy().astype(np.int32),
+    }
+    if verbose:
+        print(stats)
+
+    return stats["perplexity"]
+
