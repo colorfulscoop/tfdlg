@@ -138,35 +138,6 @@ class PointwiseFeedForwardNetwork(keras.layers.Layer):
         return output
 
 
-class PostLN(tf.keras.layers.Layer):
-    def __init__(self, d_model, num_heads, d_ff, rate=0.1, epsilon=1e-6):
-        """
-        [TODO] Need to check the default value of parameters - rate and epsilon
-        """
-        super().__init__()
-
-        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
-        self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._fst_dropout = tf.keras.layers.Dropout(rate=rate)
-
-        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
-        self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
-        self._snd_dropout = tf.keras.layers.Dropout(rate=rate)
-
-    def call(self, inputs, training, look_ahead_mask):
-        attn = self._mha(inputs, inputs, inputs, mask=look_ahead_mask)
-        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
-        attn = self._fst_dropout(attn, training=training)
-        fst_out = self._fst_layernorm(inputs + attn)
-
-        ffn = self._ffn(fst_out)
-        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
-        ffn = self._snd_dropout(ffn, training=training)
-        snd_out = self._snd_layernorm(fst_out + ffn)
-
-        return snd_out
-
-
 class TransposedEmbedding(keras.layers.Layer):
     """TransposedEmbedding represents the linear layer which shares its weights
     with the Embedding layer specified in the initializer.
@@ -258,10 +229,87 @@ def create_combined_mask(seq):
     return tf.maximum(create_padding_mask(seq), create_look_ahead_mask(seq_len))
 
 
+# ====== Define PostLNDecoder model ======
+
+
+class PostLN(tf.keras.layers.Layer):
+    def __init__(self, d_model, num_heads, d_ff, rate=0.1, epsilon=1e-6):
+        """
+        [TODO] Need to check the default value of parameters - rate and epsilon
+        """
+        super().__init__()
+
+        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+        self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
+        self._fst_dropout = tf.keras.layers.Dropout(rate=rate)
+
+        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
+        self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
+        self._snd_dropout = tf.keras.layers.Dropout(rate=rate)
+
+    def call(self, inputs, training, look_ahead_mask):
+        attn = self._mha(inputs, inputs, inputs, mask=look_ahead_mask)
+        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
+        attn = self._fst_dropout(attn, training=training)
+        fst_out = self._fst_layernorm(inputs + attn)
+
+        ffn = self._ffn(fst_out)
+        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
+        ffn = self._snd_dropout(ffn, training=training)
+        snd_out = self._snd_layernorm(fst_out + ffn)
+
+        return snd_out
+
+
 class PostLNDecoder(tf.keras.Model):
     def __init__(self, config):
         super().__init__()
         self._decoder = Decoder(transformer_cls=PostLN, **config.dict())
+
+    def call(self, inputs, training):
+        look_ahead_mask = create_combined_mask(inputs)
+        x = self._decoder(inputs, training=training, look_ahead_mask=look_ahead_mask)
+        return x
+
+
+# ====== Define PreLNDecoder model ======
+
+
+class PreLN(tf.keras.layers.Layer):
+    def __init__(self, d_model, num_heads, d_ff, rate=0.1, epsilon=1e-6):
+        """
+        [TODO] Need to check the default value of parameters - rate and epsilon
+        """
+        super().__init__()
+
+        self._mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+        self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
+        self._fst_dropout = tf.keras.layers.Dropout(rate=rate)
+
+        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
+        self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
+        self._snd_dropout = tf.keras.layers.Dropout(rate=rate)
+
+    def call(self, inputs, training, look_ahead_mask):
+        x = self._fst_layernorm(inputs)
+        attn = self._mha(x, x, x, mask=look_ahead_mask)
+        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
+        attn = self._fst_dropout(attn, training=training)
+        fst_out = inputs + attn
+
+        y = self._snd_layernorm(fst_out)
+        ffn = self._ffn(y)
+        # Residual dropout: LayerNorm(x + Dropout(Sublayer(x)))
+        ffn = self._snd_dropout(ffn, training=training)
+        snd_out = fst_out + ffn
+
+        return snd_out
+
+
+class PreLNDecoder(tf.keras.Model):
+    def __init__(self, config):
+        super().__init__()
+        self._decoder = Decoder(transformer_cls=PreLN, **config.dict())
 
     def call(self, inputs, training):
         look_ahead_mask = create_combined_mask(inputs)
