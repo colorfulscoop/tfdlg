@@ -2,7 +2,6 @@
 
 TfChat provides a **t**rans**f**ormer-based response generation models with **T**ensor**F**low for **chat**bots.
 
-
 ## Installation
 
 Prepare Python >= 3.6 first. Then run `pip` to install this package from GitHub.
@@ -17,6 +16,26 @@ $ pip install git+https://github.com/noriyukipy/tfchat
 $ pip install pytest==6.1.1
 $ pytest tests/
 ```
+
+## Models and Utililies
+
+### tfchat.models
+
+#### PostLNDecoder
+
+It is the decoder side implementation of Attention Is All You Need.
+
+Difference is
+- PostLNDecoder does not share the embedding parameter with the last layer before Softmax.
+- Weight is initialized by Grolo's uniform distribution except for layers which uses ReLU. For those which uses the ReLU activation function, He's initialization is used. (The weight initialization method is not mentioned in the paper.)
+
+#### PreLNDecoder
+
+PreLNDecoder uses Pre Layer Normalization architecture instad of Ppost Layer Normalization. This architecture is introduced in "On Layer Normalization in the Transformer Architecture"
+
+### tfchat.losses
+
+#### PaddingLoss
 
 ## Reference
 
