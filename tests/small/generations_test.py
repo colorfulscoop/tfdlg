@@ -3,6 +3,7 @@ from tfchat.generations import filter_to_topk
 from tfchat.generations import filter_to_topp
 from tfchat.generations import filter_bad_ids
 from tfchat.generations import sample_multinomial
+from tfchat.generations import TopKTopPGenerator
 
 
 def test_filter_to_topk():
@@ -79,4 +80,23 @@ def test_sample_multinomial():
     dist = np.array([[2, 0, 3, 1, -1], [5, 6, 7, 8, 9]], dtype=np.float32)
     got = sample_multinomial(dist)
 
-    assert got.shape == dist.shape
+    assert got.shape == (dist.shape[0], )
+
+
+def test_TopKTopPGenerator():
+    class ModelMock:
+        def __call__(self, inputs):
+            vocab_size = 100
+            # Add vocab_size axis at the last dimension
+            outputs = np.zeros(inputs.shape + (vocab_size, ), dtype=inputs.dtype)  # shape == (batch_size, seq_len, vocab_size)
+            return outputs
+
+    generator = TopKTopPGenerator(model=ModelMock(), top_p=0.5, top_k=10, bad_ids=[])
+
+    batch_size = 2
+    seq_len = 10
+    inputs = np.zeros((batch_size, seq_len))
+
+    outputs = generator.step(inputs)
+
+    assert outputs.shape == (inputs.shape[0], )

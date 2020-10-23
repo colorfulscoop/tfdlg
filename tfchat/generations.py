@@ -73,14 +73,15 @@ def filter_bad_ids(bad_ids, dist):
 
 def sample_multinomial(dist):
     # np.random.multinomial works only with one dimensional array
-    spl = np.array(
+    spl_one_hot = np.array(
         [np.random.multinomial(n=1, pvals=softmax(dist_one)) for dist_one in dist],
         dtype=dist.dtype
-    )
-    return spl
+    )  # shape: dist.shape
+    spl_label = np.argmax(spl_one_hot, axis=1)  # shape: (dist.shape[1], )
+    return spl_label
 
 
-class TopPKGenerator:
+class TopKTopPGenerator:
     """Sentence generator to sandom sampling from top-k distribution"""
     def __init__(self, model, top_p, top_k, bad_ids):
         self._model = model
