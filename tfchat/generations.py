@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-import tensorflow.keras as keras
+from scipy.special import softmax
 
 
 def filter_to_topk(top_k, dist):
@@ -43,7 +43,7 @@ def filter_to_topp(top_p, dist):
     sorted_index = np.argsort(-dist)
     sorted_value = np.take_along_axis(dist, sorted_index, axis=-1)
 
-    sorted_prob = sp.special.softmax(sorted_value, axis=1)
+    sorted_prob = softmax(sorted_value, axis=1)
     sorted_prob_cumsum = np.cumsum(sorted_prob, axis=-1)
 
     # shift right side
@@ -72,10 +72,12 @@ def filter_bad_ids(bad_ids, dist):
 
 
 def sample_multinomial(dist):
-    return torch.multinomial(
-        input=torch.functional.F.softmax(dist, dim=-1),
-        num_samples=1
+    # np.random.multinomial works only with one dimensional array
+    spl = np.array(
+        [np.random.multinomial(n=1, pvals=softmax(dist_one)) for dist_one in dist],
+        dtype=dist.dtype
     )
+    return spl
 
 
 class TopPKGenerator:
@@ -86,12 +88,14 @@ class TopPKGenerator:
         self._top_k = top_k
         self._bad_ids = bad_ids
 
-    def step(self, **argv):
-        # Predict next word distribution
-        output = self._model(**argv)
-        # last_hidden_state dim = (batch_size, input_ids length, num_vocabs)
-        last_hidden_state = output[0]
-        next_id_dist = last_hidden_state[:, -1, :]
+    def step(self, inputs):
+        """
+        Args:
+            inputs: shape == (batch_size, seq_len)
+        """
+        outputs = self._model(inputs)  # shape == (batch_size, seq_len, vocab_size)
+
+        next_id_dist = outputs[:, -1, :]
 
         # Set filter_bad_ids first
         # If not, all values would be -inf, which leads to raise exception
@@ -105,4 +109,4 @@ class TopPKGenerator:
         for flt in filters:
             filtered_dist = flt(filtered_dist)
 
-        return sample_multinomial(filtered_dist), output
+        return sample_multinomial(filtered_dist)

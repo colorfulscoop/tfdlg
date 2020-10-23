@@ -2,6 +2,7 @@ import numpy as np
 from tfchat.generations import filter_to_topk
 from tfchat.generations import filter_to_topp
 from tfchat.generations import filter_bad_ids
+from tfchat.generations import sample_multinomial
 
 
 def test_filter_to_topk():
@@ -72,3 +73,10 @@ def test_filter_bad_ids():
         dtype=np.float32
     )
     np.testing.assert_equal(res, expected)
+
+
+def test_sample_multinomial():
+    dist = np.array([[2, 0, 3, 1, -1], [5, 6, 7, 8, 9]], dtype=np.float32)
+    got = sample_multinomial(dist)
+
+    assert got.shape == dist.shape
