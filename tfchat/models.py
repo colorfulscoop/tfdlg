@@ -166,14 +166,14 @@ class TransposedEmbedding(keras.layers.Layer):
 
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, transformer_cls, num_layers, d_model, num_heads,
-                 d_ff, vocab_size, max_position_encoding,
+                 d_ff, vocab_size, context_size,
                  residual_dropout_rate, attention_dropout_rate,
                  epsilon=1e-6):
         super().__init__()
 
         self._embedding = tf.keras.layers.Embedding(vocab_size, d_model)
         self._pos_enc = PositionalEncoding(embed_size=d_model,
-                                           max_steps=max_position_encoding)
+                                           max_steps=context_size)
 
         self._dec_layers = [transformer_cls(d_model=d_model,
                                             num_heads=num_heads,

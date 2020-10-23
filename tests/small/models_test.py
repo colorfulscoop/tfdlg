@@ -117,10 +117,10 @@ def test_decoder():
     num_heads = 8
     d_ff = 256
     vocab_size = 1000
-    max_position_encoding = 100
+    context_size = 100
 
     decoder = Decoder(transformer_cls, num_layers, d_model, num_heads,
-                      d_ff, vocab_size, max_position_encoding,
+                      d_ff, vocab_size, context_size,
                       residual_dropout_rate=0.1, attention_dropout_rate=0.1)
 
     batch_size = 2
@@ -157,7 +157,7 @@ def test_PostLNDecoder():
         num_heads=8,
         d_ff=256,
         vocab_size=1000,
-        max_position_encoding=100,
+        context_size=100,
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
         epsilon=1e-6,
@@ -181,7 +181,7 @@ def test_PostLNDecoder_fit():
         num_heads=8,
         d_ff=256,
         vocab_size=1000,
-        max_position_encoding=100,
+        context_size=100,
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
         epsilon=1e-6,
