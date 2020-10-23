@@ -7,6 +7,7 @@ setuptools.setup(
     install_requires=[
         # Install tensorflow 2.X
         "tensorflow~=2.0",
+        "scipy~=1.5.0",
         # "tensorflow_text~=2.0"
         # "tensorflow-hub",
         # Install Scikit-learn
