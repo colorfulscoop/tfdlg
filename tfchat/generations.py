@@ -66,7 +66,7 @@ def filter_to_topp(top_p, dist):
 
 
 def filter_bad_ids(bad_ids, dist):
-    dist = dist.clone()
+    dist = np.copy(dist)
     dist[:, bad_ids] = -float("Inf")
     return dist
 
