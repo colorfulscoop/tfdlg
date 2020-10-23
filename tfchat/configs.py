@@ -10,7 +10,10 @@ class Config(BaseModel):
     context_size: int
     attention_dropout_rate: float
     residual_dropout_rate: float
+    embedding_dropout_rate: float
     epsilon: float
+
+# ===== Configuration for Transformer [Vaswani+, 2017] ======
 
 
 class TransformerConfig(Config):
@@ -22,10 +25,11 @@ class TransformerConfig(Config):
     context_size: int = 512
     attention_dropout_rate: float = 0.1
     residual_dropout_rate: float = 0.1
+    embedding_dropout_rate: float = 0.1
     epsilon: float = 1e-6
 
 
-# ===== Config for GPT2 =====
+# ===== Configuration for GPT2 [Radford+, 2018] =====
 
 
 class GPT2SmallConfig(Config):
@@ -38,6 +42,7 @@ class GPT2SmallConfig(Config):
     context_size: int = 1024
     attention_dropout_rate: float = 0.1
     residual_dropout_rate: float = 0.1
+    embedding_dropout_rate: float = 0.1
     epsilon: float = 1e-6
 
 

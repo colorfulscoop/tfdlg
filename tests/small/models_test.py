@@ -121,7 +121,10 @@ def test_decoder():
 
     decoder = Decoder(transformer_cls, num_layers, d_model, num_heads,
                       d_ff, vocab_size, context_size,
-                      residual_dropout_rate=0.1, attention_dropout_rate=0.1)
+                      residual_dropout_rate=0.1,
+                      attention_dropout_rate=0.1,
+                      embedding_dropout_rate=0.1,
+                      )
 
     batch_size = 2
     seq_len = 10
@@ -160,6 +163,7 @@ def test_PostLNDecoder():
         context_size=100,
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
+        embedding_dropout_rate=0.1,
         epsilon=1e-6,
     )
 
@@ -184,6 +188,7 @@ def test_PostLNDecoder_fit():
         context_size=100,
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
+        embedding_dropout_rate=0.1,
         epsilon=1e-6,
     )
 

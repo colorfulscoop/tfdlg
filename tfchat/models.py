@@ -168,6 +168,7 @@ class Decoder(tf.keras.layers.Layer):
     def __init__(self, transformer_cls, num_layers, d_model, num_heads,
                  d_ff, vocab_size, context_size,
                  residual_dropout_rate, attention_dropout_rate,
+                 embedding_dropout_rate,
                  epsilon=1e-6):
         super().__init__()
 
@@ -182,7 +183,7 @@ class Decoder(tf.keras.layers.Layer):
                                             attention_dropout_rate=attention_dropout_rate,
                                             epsilon=epsilon)
                             for _ in range(num_layers)]
-        self._dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
+        self._dropout = tf.keras.layers.Dropout(rate=embedding_dropout_rate)
         #self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
         self._output_layer = keras.layers.Dense(vocab_size)
 
