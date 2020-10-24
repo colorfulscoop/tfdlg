@@ -71,6 +71,13 @@ def filter_bad_ids(bad_ids, dist):
 
 
 def sample_multinomial(dist):
+    # dist should be casted to float64 before passing multinomial
+    # because multinomial implicitly cast the inputs to float64.
+    # If the type of result of softmax is float32 and converted to float64,
+    # the sum of the softmax will be over 1.0.
+    # https://stackoverflow.com/questions/23257587/how-can-i-avoid-value-errors-when-using-numpy-random-multinomial
+    dist = dist.astype(np.float64)
+
     # np.random.multinomial works only with one dimensional array
     spl_one_hot = np.array(
         [np.random.multinomial(n=1, pvals=softmax(dist_one)) for dist_one in dist],
