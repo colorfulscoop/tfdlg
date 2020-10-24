@@ -27,7 +27,7 @@ class BlockDataset:
         #   map batch  -> {{[1, 2, 3]}, {[4, 5, 6]}}
         #   flat       -> {[1, 2, 3], [4, 5, 6]}
         #   batch      -> {[[1, 2, 3], [4, 5, 6]]}
-        dataset = tf.data.Dataset.from_generator(lambda: ids, tf.int32)
+        dataset = tf.data.Dataset.from_tensor_slices(ids)
         dataset = dataset.window(window_length,
                                  shift=self._block_size,
                                  drop_remainder=True)
