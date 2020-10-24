@@ -22,7 +22,7 @@ def test_BlockDataset():
 
 
 def test_LineByLineDataset():
-    loader = LineByLineDataset(max_seq_len=5, batch_size=2)
+    loader = LineByLineDataset(max_len=5, batch_size=2)
 
     ids = np.array([[0], [0, 1], [0, 1, 2], [0, 1, 2, 3], [0, 1, 2, 3, 4]])
 

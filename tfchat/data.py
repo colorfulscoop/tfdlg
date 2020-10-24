@@ -42,8 +42,8 @@ class BlockDataset:
 
 
 class LineByLineDataset:
-    def __init__(self, max_seq_len, batch_size, buffer_size=10000):
-        self._max_seq_len = max_seq_len
+    def __init__(self, max_len, batch_size, buffer_size=10000):
+        self._max_len = max_len
         self._batch_size = batch_size
         self._buffer_size = buffer_size
 
@@ -58,7 +58,7 @@ class LineByLineDataset:
             dataset = dataset.shuffle(self._buffer_size)
         dataset = dataset.padded_batch(batch_size=self._batch_size,
                                        padding_values=0,
-                                       padded_shapes=self._max_seq_len,
+                                       padded_shapes=self._max_len,
                                        drop_remainder=True,
                                        )
         dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
