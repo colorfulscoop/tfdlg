@@ -94,8 +94,8 @@ def test_TopKTopPGenerator():
     max_len = 20
 
     generator = TopKTopPGenerator(model=ModelMock(),
-                                  top_p=0.5,
                                   top_k=10,
+                                  top_p=0.5,
                                   bad_ids=[],
                                   max_len=max_len)
 

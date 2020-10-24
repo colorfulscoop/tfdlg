@@ -89,7 +89,7 @@ def sample_multinomial(dist):
 
 class TopKTopPGenerator:
     """Sentence generator to sandom sampling from top-k distribution"""
-    def __init__(self, model, top_p=0.95, top_k=50,
+    def __init__(self, model, top_k=50, top_p=0.95,
                  bad_ids=[], max_len=20):
         self._model = model
         self._top_p = top_p
