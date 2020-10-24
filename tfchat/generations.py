@@ -89,11 +89,13 @@ def sample_multinomial(dist):
 
 class TopKTopPGenerator:
     """Sentence generator to sandom sampling from top-k distribution"""
-    def __init__(self, model, top_p, top_k, bad_ids):
+    def __init__(self, model, top_p=0.95, top_k=50,
+                 bad_ids=[], max_len=20):
         self._model = model
         self._top_p = top_p
         self._top_k = top_k
         self._bad_ids = bad_ids
+        self._max_len = max_len
 
     def step(self, inputs):
         """
@@ -117,3 +119,10 @@ class TopKTopPGenerator:
             filtered_dist = flt(filtered_dist)
 
         return sample_multinomial(filtered_dist)
+
+    def generate(self, inputs):
+        for _ in range(self._max_len):
+            outputs = self.step(inputs)
+            outputs = outputs.reshape((inputs.shape[0], 1))
+            inputs = np.concatenate([inputs, outputs], axis=-1)
+        return inputs

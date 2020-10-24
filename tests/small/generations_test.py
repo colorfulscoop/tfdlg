@@ -91,12 +91,29 @@ def test_TopKTopPGenerator():
             outputs = np.zeros(inputs.shape + (vocab_size, ), dtype=inputs.dtype)  # shape == (batch_size, seq_len, vocab_size)
             return outputs
 
-    generator = TopKTopPGenerator(model=ModelMock(), top_p=0.5, top_k=10, bad_ids=[])
+    max_len = 20
 
-    batch_size = 2
-    seq_len = 10
-    inputs = np.zeros((batch_size, seq_len))
+    generator = TopKTopPGenerator(model=ModelMock(),
+                                  top_p=0.5,
+                                  top_k=10,
+                                  bad_ids=[],
+                                  max_len=max_len)
 
-    outputs = generator.step(inputs)
+    def test_step():
+        batch_size = 2
+        seq_len = 10
+        inputs = np.zeros((batch_size, seq_len))
+        outputs = generator.step(inputs)
 
-    assert outputs.shape == (inputs.shape[0], )
+        assert outputs.shape == (inputs.shape[0], )
+
+    def test_generation():
+        batch_size = 2
+        seq_len = 10
+        inputs = np.zeros((batch_size, seq_len))
+        outputs = generator.generate(inputs)
+
+        assert outputs.shape == (inputs.shape[0], inputs.shape[1]+max_len)
+
+    test_step()
+    test_generation()
