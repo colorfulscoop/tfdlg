@@ -131,12 +131,11 @@ perplexity(model, valid_dataset)
 `TopKTopPGenerator` generates outputs from inputs with Top-p (Nucleus) Sampling introduced in [Holtzman+, 2019].
 
 ```py
-from tfchat.generations import TopKTopPGenerator
-
-gen = TopKTopPGenerator(model=model, max_len=20)
-inputs = np.array([[1, 3, 2, 4, 1]], dtype=np.int32)
-
-gen.generate(inputs)
+>>> from tfchat.generations import TopKTopPGenerator
+>>> gen = TopKTopPGenerator(model=model, max_len=3)
+>>> inputs = np.array([[1, 3, 2, 4, 1]], dtype=np.int32)
+>>> gen.generate(inputs)
+array([[1, 3, 2, 4, 1, 1, 1, 1]])
 ```
 
 ## Example
