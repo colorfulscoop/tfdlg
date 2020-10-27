@@ -30,6 +30,7 @@ from tfchat.models import PreLNDecoder
 from tfchat.metrics import perplexity
 from tfchat.losses import PaddingLoss
 from tfchat.optimizers import TransformerScheduler
+from tfchat.configs import GPT2SmallConfig
 import tensorflow.keras as keras
 
 # Prepare dataset
@@ -41,6 +42,7 @@ train_dataset = dataset.build(train_ids, shuffle=True)
 valid_dataset = dataset.build(valid_ids, shuffle=False)
 
 # Prepare model
+config = GPT2SmallConfig()
 model = PreLNDecoder(config)
 
 scheduler = TransformerScheduler(d_model=config.d_model, warmup_steps=1000)
