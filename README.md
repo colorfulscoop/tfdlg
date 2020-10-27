@@ -33,6 +33,9 @@ from tfchat.optimizers import TransformerScheduler
 from tfchat.configs import GPT2SmallConfig
 import tensorflow.keras as keras
 
+# Prepare config
+config = GPT2SmallConfig()
+
 # Prepare dataset
 train_ids = [...]  # Prepare token ids for training data
 valid_ids = [...]  # Prepare token ids for validation data
@@ -42,7 +45,6 @@ train_dataset = dataset.build(train_ids, shuffle=True)
 valid_dataset = dataset.build(valid_ids, shuffle=False)
 
 # Prepare model
-config = GPT2SmallConfig()
 model = PreLNDecoder(config)
 
 scheduler = TransformerScheduler(d_model=config.d_model, warmup_steps=1000)
