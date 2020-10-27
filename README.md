@@ -101,11 +101,6 @@ To ignore padding value `0` in the loss, `PaddingLoss` can be used.
 
 ```py
 from tfchat.losses import PaddingLoss
-optimizer = keras.optimizers.Adam(scheduler,
-                                  beta_1=0.9,
-                                  beta_2=0.999,
-                                  epsilon=1e-8,
-                                  clipnorm=1.0)
 model.compile(loss=PaddingLoss(), optimizer=keras.optimizers.Adam())
 ```
 
