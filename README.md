@@ -1,6 +1,9 @@
 # TfChat
 
-TfChat provides a **t**rans**f**ormer-based response generation models with **T**ensor**F**low for **chat**bots.
+**TfChat** is a Python library for transformer-based language model with TensorFlow.
+
+TfChat also provides several classes and functions to train models for conversational AI.
+Those utilities are implemented under **tfchat.dialog** namespace.
 
 ## Installation
 
@@ -10,11 +13,60 @@ Prepare Python >= 3.6 first. Then run `pip` to install this package from GitHub.
 $ pip install git+https://github.com/noriyukipy/tfchat
 ```
 
-## Test
+You can run tests to make sure your installtion succeeds with pytest library.
 
 ```sh
 $ pip install pytest==6.1.1
 $ pytest tests/
+```
+
+## Quick Overview of Usage
+
+The models provided by TfChat can be used in the usual manner of TensorFlow Keras API.
+
+```py
+from tfchat.data import BlockDataset
+from tfchat.models import PreLNDecoder
+from tfchat.metrics import perplexity
+from tfchat.losses import PaddingLoss
+from tfchat.optimizers import TransformerScheduler
+import tensorflow.keras as keras
+
+# Prepare dataset
+train_ids = [...]  # Prepare token ids for training data
+valid_ids = [...]  # Prepare token ids for validation data
+dataset = BlockDataset(block_size=config.context_size, batch_size=2)
+
+train_dataset = dataset.build(train_ids, shuffle=True)
+valid_dataset = dataset.build(valid_ids, shuffle=False)
+
+# Prepare model
+model = PreLNDecoder(config)
+
+scheduler = TransformerScheduler(d_model=config.d_model, warmup_steps=1000)
+optimizer = keras.optimizers.Adam(scheduler,
+                                  beta_1=0.9,
+                                  beta_2=0.999,
+                                  epsilon=1e-8,
+                                  clipnorm=1.0)
+model.compile(loss=PaddingLoss(), optimizer=optimizer)
+model.build(input_shape=(None, config.context_size))
+model.summary()
+
+# Train
+history = model.fit(
+    train_dataset,
+    validation_data=valid_dataset,
+    epochs=10,
+    callbacks=[
+        keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True),
+        # If you want to save chekcpoints, remove the next comment out
+        #keras.callbacks.ModelCheckpoint("keras_model/", save_best_only=True)
+    ]
+)
+
+# Evaluate
+perplexity(model, valid_dataset)
 ```
 
 ## Models and Utililies
@@ -39,6 +91,7 @@ Difference against GPT2
 ### tfchat.losses
 
 #### PaddingLoss
+
 
 ## Reference
 
