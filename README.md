@@ -2,18 +2,15 @@
 
 **TfChat** is a Python library for transformer-based language model with TensorFlow.
 
-TfChat also provides several classes and functions to train models for conversational AI.
-Those utilities are implemented under **tfchat.dialog** namespace.
-
 ## Installation
 
-Prepare Python >= 3.6 first. Then run `pip` to install this package from GitHub.
+Prepare your environment with Python >= 3.6 first. Then run `pip` to install this package from GitHub.
 
 ```sh
 $ pip install git+https://github.com/noriyukipy/tfchat
 ```
 
-You can run tests to make sure your installtion succeeds with pytest library.
+You can run tests with [pytest](https://docs.pytest.org/en/stable/) to make sure your installtion succeeds.
 
 ```sh
 $ pip install pytest==6.1.1
@@ -24,7 +21,7 @@ $ pytest tests/
 
 ### Models
 
-To use models provided in TfChat, you first need to initialize the config object which handles hyper-parameters of the model.
+To use models provided in TfChat, you first need to create a config object which handles hyper-parameters of the model.
 
 ```py
 >>> from tfchat.configs import GPT2SmallConfig
@@ -33,15 +30,16 @@ To use models provided in TfChat, you first need to initialize the config object
 GPT2SmallConfig(num_layers=12, d_model=768, num_heads=12, d_ff=3072, vocab_size=50257, context_size=1024, attention_dropout_rate=0.1, residual_dropout_rate=0.1, embedding_dropout_rate=0.1, epsilon=1e-06)
 ```
 
-Then you can initialize the model with the config object.
-Here is the example of initializing the decoder side model of Pre-LN Transformer explained in [Xiong+, 2020].
+Then you can create the model with the config object.
+TfChat currently provides two types of models which use decoder-side Transformer called Pre-LN and Post-LN Transformer, which are explained in [Xiong+, 2020].
+Here is an example of using Pre-LN Transformer.
 
 ```py
 >>> from tfchat.models import PreLNDecoder
 >>> model = PreLNDecoder(config)
 ```
 
-The models provided by TfChat can be used in the usual manner of TensorFlow Keras API.
+The models can be used in the usual manner of TensorFlow Keras API.
 
 ```py
 >>> import tensorflow.keras as keras
@@ -60,6 +58,15 @@ Non-trainable params: 0
 _________________________________________________________________
 ```
 
+To train the models, you need to provide the data. The data consists of several samples, and each sample is a array of ids with `(config.context_size, )` shape.
+
+For example, assume that context size = 3.
+When a sentence "Nice to meet you" can be encoded as `[3, 4, 5, 6]`. Then the sample for input is `[3, 4, 5]` and the target label is `[4, 5, 6]`.
+
+In the following example, `contexts` is a dummy data for four encoded sentences. You can substitute your own data there.
+
+After preparing data, you can use `fit` method to train your model.
+
 ```py
 >>> import numpy as np
 >>> contexts = np.ones((4, config.context_size+1), dtype=np.int32)  # This is dummy data. Replace with your data
@@ -69,15 +76,45 @@ _________________________________________________________________
 2/2 [==============================] - 7s 4s/step - loss: 6.4654
 ```
 
-### Utils
+### Utilities
 
-TfChat provides not only models but also utilities to help users train/predict models.
+TfChat provides not only models but also utilities to help users train and evaluate models as well as generating sentences.
 
 #### Dataset
 
-```py
-from tfchat.data import BlockDataset
+Preparing input data usually takes time. For typical input data, TfChat provides useful classes under `tfchat.data`.
 
+One of them is `BlockDataset`.
+This class is for creating dataset to train a language model with large documents (e.g. Wikipedia)
+After you prepare the ids of encoded documents, `BlockDataset` split the data into `block_size` and batch them.
+
+For example, you have ids as `[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`. For applying `BlockDataset.build` method with `block_size=5` and `batch_size=2`,
+then the output is [tensorflow.data.Dataset](https://www.tensorflow.org/api_docs/python/tf/data/Dataset)
+which consists of tuple `([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])`.
+The first item is the input, and the second one is the target label.
+
+Let's take a look at this example.
+
+```py
+>>> from tfchat.data import BlockDataset
+>>> dataset = BlockDataset(block_size=5, batch_size=2)
+>>> ids = list(range(11))
+>>> ids
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+>>> for item in dataset.build(ids, shuffle=False):
+...     print(item)
+...
+(<tf.Tensor: shape=(2, 5), dtype=int32, numpy=
+array([[0, 1, 2, 3, 4],
+       [5, 6, 7, 8, 9]], dtype=int32)>, <tf.Tensor: shape=(2, 5), dtype=int32, numpy=
+array([[ 1,  2,  3,  4,  5],
+       [ 6,  7,  8,  9, 10]], dtype=int32)>)
+```
+
+You can set `shuffle` argument for `build` method to decide shuffle the samples or not.
+This is useful to build validation data without shuffling as follow.
+
+```py
 # Prepare config
 
 # Prepare dataset
@@ -89,7 +126,7 @@ train_dataset = dataset.build(train_ids, shuffle=True)
 valid_dataset = dataset.build(valid_ids, shuffle=False)
 ```
 
-You can use dataset in the `fit` method as follows.
+You can use dataset in the `fit` method in the usual manner.
 
 ```py
 history = model.fit(train_dataset, validation_data=valid_dataset)
