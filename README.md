@@ -2,6 +2,9 @@
 
 **TfChat** is a Python library for transformer-based language model with TensorFlow.
 
+TfChat adopts simple and transparent model implementation to enable users to customize models for their research and interests.
+You can find the model implementation in [tfchat/models.py](tfchat/models.py).
+
 ## Installation
 
 Prepare your environment with Python >= 3.6 first. Then run `pip` to install this package from GitHub.
@@ -220,29 +223,25 @@ history = model.fit(
 perplexity(model, valid_dataset)
 ```
 
-## Models and Utililies
+## Models
 
-### tfchat.models
-
-#### PostLNDecoder
+### tfchat.models.PostLNDecoder
 
 It is the decoder side implementation of [Vaswani+, 2017] .
 
-Difference is
+Difference from [VasWani+, 2017] is
+
 - PostLNDecoder does not share the embedding parameter with the last layer before Softmax.
 - Weight is initialized by Grolo's uniform distribution except for layers which uses ReLU. For those which uses the ReLU activation function, He's initialization is used. (The weight initialization method is not mentioned in the paper.)
 
-#### PreLNDecoder
+### tfchat.models.PreLNDecoder
 
-PreLNDecoder uses Pre Layer Normalization architecture instad of Ppost Layer Normalization. This architecture is introduced in [Xiong+, 2020] .
+PreLNDecoder replaces Post Layer Normalization architecture of PostLNDecoder with Pre Layer Normalization architecture explained in [Xiong+, 2020].
 
-Difference against GPT2
+This architecture is related to GPT-2 introduced in [Radford+, 2019].
+Difference against GPT2.
+
 - Not using GeLU
-
-### tfchat.losses
-
-#### PaddingLoss
-
 
 ## Reference
 
