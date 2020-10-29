@@ -2,18 +2,27 @@
 
 ## Setup
 
-* Tokenizer: [🤗 Transformers](https://github.com/huggingface/transformers) ' [GPT2 tokenizer](https://huggingface.co/transformers/model_doc/gpt2.html#gpt2tokenizer)
-* Model: PreLNDecoder and PostLNDecoder from TfChat, minGPT-TF, GPT2 from [🤗 Transformers](https://github.com/huggingface/transformers)
+* Tokenizer: [🤗 Transformers](https://github.com/huggingface/transformers)' [GPT2 tokenizer](https://huggingface.co/transformers/model_doc/gpt2.html#gpt2tokenizer)
+* Models:
+  * PreLNDecoder and PostLNDecoder from TfChat
+  * GPT2 from minGPT-TF
+  * GPT2 from [🤗 Transformers](https://github.com/huggingface/transformers)
 * Model hyper-parameters (e.g. d_model, n_layers, n_heads): The same as GPT2 small model
 * Target dataset: [WikiText-103](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/)
-* Models and settings
+* Training parameters:
+  * Max epochs: 10
+  * Batch size: 2
+  * Optimizers: Adam for Tensorflow models and AdamW for [🤗 Transformers](https://github.com/huggingface/transformers)' model
+  * Learning rate schedule: linear schedule where lr decreases from `1e-5` to `0`
 
-| Name | Model | Optimizer and Scheduler |
+In summary:
+
+| Name | Model | Optimizer |
 | --- | --- | --- |
-| TfChat.PreLNDecoder | PreLNDecoder from TfChat | Adam with linear schedule where lr decreases from `1e-5` to `0` |
-| TfChat.PostLNDecoder | PostLNDecoder from TfChat | Adam with linear schedule where lr decreases from `1e-5` to `0` |
-| minGPT-TF.GPT2 | GPT2 from minGPT-TF | Adam with linear schedule where lr decreases from `1e-5` to `0` |
-| Transformers.GPT2 | GPT2 from [🤗 Transformers](https://github.com/huggingface/transformers) | [AdamW](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adamw-pytorch) with linear schedule where lr decreases from `1e-5` to `0` |
+| TfChat.PreLNDecoder | PreLNDecoder from TfChat | Adam |
+| TfChat.PostLNDecoder | PostLNDecoder from TfChat | Adam |
+| minGPT-TF.GPT2 | GPT2 from minGPT-TF | Adam |
+| Transformers.GPT2 | GPT2 from [🤗 Transformers](https://github.com/huggingface/transformers) | [AdamW](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adamw-pytorch) |
 
 ## Prepare dataset
 
