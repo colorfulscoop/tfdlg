@@ -22,7 +22,7 @@ $ pytest tests/
 
 ## Usage
 
-Please take a look at [Jupyter Notebook - docs/usage.ipynb](docs/usage.ipynb).
+Please take a look at [examples/usage.ipynb](examples/usage.ipynb).
 
 ## Example
 
