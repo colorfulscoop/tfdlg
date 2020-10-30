@@ -29,7 +29,7 @@ class TransformerSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
         }
 
 
-class LinearSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+class WarmupLinearDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, max_learning_rate, warmup_steps, training_steps):
         self._max_learning_rate = max_learning_rate
         self._warmup_steps = warmup_steps
