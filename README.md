@@ -24,9 +24,8 @@ $ pytest tests/
 
 ## Usage
 
-You can find details in [examples/usage.ipynb](examples/usage.ipynb).
 
-The next code shows the overview of how to use TfChat.
+The next code shows the overview of how to use TfChat. You can find the result of running it in [examples/overview.ipynb](examples/overview.ipynb).
 
 ```py
 from tfchat.configs import Config
@@ -95,6 +94,8 @@ gen = TopKTopPGenerator(model=model, max_len=3)
 inputs = np.array([[1, 2, 3, 4, 5]], dtype=np.int32)
 gen.generate(inputs)
 ```
+
+Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more details of each classes and functions.
 
 
 ## Model Description
