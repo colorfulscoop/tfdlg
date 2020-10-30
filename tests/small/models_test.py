@@ -12,7 +12,6 @@ from tfchat.models import create_look_ahead_mask
 from tfchat.models import create_combined_mask
 from tfchat.models import PostLNDecoder
 from tfchat.losses import PaddingLoss
-from tfchat.optimizers import TransformerScheduler
 from tfchat.configs import Config
 
 

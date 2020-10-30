@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-class TransformerScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
+class TransformerSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     """TransformerScheduler implements the scheduler used in [Vaswani+, 2017]"""
     def __init__(self, d_model, warmup_steps=4000):
         super().__init__()

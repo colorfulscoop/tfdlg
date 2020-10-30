@@ -1,11 +1,11 @@
 import tensorflow as tf
-from tfchat.optimizers import TransformerScheduler
-from tfchat.optimizers import LinearSchedule
+from tfchat.schedules import TransformerSchedule
+from tfchat.schedules import LinearSchedule
 import numpy as np
 
 
 def test_scheduler():
-    scheduler = TransformerScheduler(d_model=1024)
+    scheduler = TransformerSchedule(d_model=1024)
     out = scheduler(tf.range(50000, dtype=tf.float32))
 
     np.testing.assert_almost_equal(np.max(out), 0.00049410586)
