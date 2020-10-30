@@ -2,8 +2,10 @@
 
 **TfChat** is a Python library for transformer-based language model with TensorFlow.
 
-TfChat adopts simple and transparent model implementation to enable users to customize models for their research and interests.
-You can find the model implementation in [tfchat/models.py](tfchat/models.py).
+Features:
+
+* **Simple model:** TfChat adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfchat/models.py](tfchat/models.py).
+* **Useful utilities:** TfChat provides several useful utilities to prepare dataset with `tf.data.Dataset` format, learning rate schedules, loss function with padding consideration and perplexity evaluation metrics. You can find them in [examples/usage.ipynb](examples/usage.ipynb)
 
 ## Installation
 
@@ -22,33 +24,52 @@ $ pytest tests/
 
 ## Usage
 
-Please take a look at [examples/usage.ipynb](examples/usage.ipynb).
+You can find details in [examples/usage.ipynb](examples/usage.ipynb).
 
-## Example
+The next code shows the overview of how to use TfChat.
 
 ```py
+from tfchat.configs import Config
 from tfchat.data import BlockDataset
 from tfchat.metrics import perplexity
 from tfchat.losses import PaddingLoss
-from tfchat.optimizers import TransformerScheduler
+from tfchat.schedules import WarmupLinearDecay
+from tfchat.generations import TopKTopPGenerator
+from tfchat.models import PreLNDecoder
 
-# Prepare config
+import tensorflow.keras as keras
+import numpy as np
+
+
+# Define model config
+config = Config(num_layers=6, d_model=64, num_heads=1, d_ff=256, vocab_size=100,
+                context_size=64, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
+                embedding_dropout_rate=0.1, epsilon=1e-06)
+
+# You can use predefined config as follows instead of defining config by yourself
+#
+# from tfchat.configs import GPT2SmallConfig
+# config = GPT2SmallConfig()
+
+
+# Define training parameters
+batch_size = 2
+epochs = 10
 
 # Prepare dataset
-train_ids = [...]  # Prepare token ids for training data
-valid_ids = [...]  # Prepare token ids for validation data
-dataset = BlockDataset(block_size=config.context_size, batch_size=2)
+train_ids = np.tile(np.arange(10, dtype=np.int32), 1000)  # Prepare token ids for training data
+valid_ids = np.tile(np.arange(10, dtype=np.int32), 100)   # Prepare token ids for validation data
 
+dataset = BlockDataset(block_size=config.context_size, batch_size=batch_size)
 train_dataset = dataset.build(train_ids, shuffle=True)
 valid_dataset = dataset.build(valid_ids, shuffle=False)
 
 # Prepare model
-scheduler = TransformerScheduler(d_model=config.d_model, warmup_steps=1000)
-optimizer = keras.optimizers.Adam(scheduler,
-                                  beta_1=0.9,
-                                  beta_2=0.999,
-                                  epsilon=1e-8,
-                                  clipnorm=1.0)
+num_steps = len([_ for _ in train_dataset])
+schedule = WarmupLinearDecay(max_learning_rate=1e-3, warmup_steps=0, training_steps=num_steps*epochs)
+optimizer = keras.optimizers.Adam(schedule, beta_1=0.9, beta_2=0.999, epsilon=1e-8, clipnorm=1.0)
+
+model = PreLNDecoder(config)
 model.compile(loss=PaddingLoss(), optimizer=optimizer)
 model.build(input_shape=(None, config.context_size))
 model.summary()
@@ -57,7 +78,7 @@ model.summary()
 history = model.fit(
     train_dataset,
     validation_data=valid_dataset,
-    epochs=10,
+    epochs=epochs,
     callbacks=[
         keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True),
         # If you want to save chekcpoints, remove the next comment out
@@ -66,10 +87,17 @@ history = model.fit(
 )
 
 # Evaluate
-perplexity(model, valid_dataset)
+ppl = perplexity(model, valid_dataset)
+print("Validation PPL:", ppl)
+
+# Generate
+gen = TopKTopPGenerator(model=model, max_len=3)
+inputs = np.array([[1, 2, 3, 4, 5]], dtype=np.int32)
+gen.generate(inputs)
 ```
 
-## Models
+
+## Model Description
 
 ### tfchat.models.PostLNDecoder
 
