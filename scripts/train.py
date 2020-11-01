@@ -1,16 +1,30 @@
-from tfchat.configs import Config
 from tfchat.data import BlockDataset
 from tfchat.metrics import perplexity
 from tfchat.losses import PaddingLoss
 from tfchat.schedules import WarmupLinearDecay
 from tfchat.generations import TopKTopPGenerator
-from tfchat.models import PreLNDecoder
 
 import tensorflow.keras as keras
 import numpy as np
 
 from pathlib import Path
 import json
+import inspect
+
+
+def import_class(name):
+    """Import class from string.
+
+    Args:
+        name (str): class path
+
+    Example:
+
+        >>> model_cls = import_class("tfchat.models.PreLNDecoder")
+    """
+    components = name.split(".")
+    mod = __import__(".".join(components[:-1]), fromlist=[components[-1]])
+    return getattr(mod, components[-1])
 
 
 def save_model(model_dir, model, config):
@@ -28,11 +42,27 @@ def save_model(model_dir, model, config):
     model_path = model_dir_path / "model.h5"
     model.save_weights(model_path)
 
+    # Save class name
+    class_path = model_dir_path / "class.json"
+    with open(class_path, "w") as f:
+        class_dict = {
+            "config": ".".join([inspect.getmodule(config).__name__, config.__class__.__name__]),
+            "model": ".".join([inspect.getmodule(model).__name__, model.__class__.__name__]),
+        }
+        json.dump(class_dict, f)
 
-def load_model(model_dir, model_cls, config_cls):
+
+def load_model(model_dir):
     model_dir_path = Path(model_dir)
 
-    # Save config
+    # Load class
+    class_path = model_dir_path / "class.json"
+    with open(class_path) as f:
+        class_dict = json.load(f)
+        config_cls = import_class(class_dict["config"])
+        model_cls = import_class(class_dict["model"])
+
+    # Load config
     config_path = model_dir_path / "config.json"
     with open(config_path) as f:
         config_dict = json.load(f)
@@ -52,23 +82,24 @@ def load_model(model_dir, model_cls, config_cls):
     return model, config
 
 
-def main(save_model_dir=None, load_model_dir=None, do_eval=True):
+def main(save_model_dir=None, load_model_dir=None, do_eval=True,
+         batch_size=2, epochs=1,
+         model_cls="tfchat.models.PreLNDecoder",
+         config_cls="tfchat.configs.Config"):
     # Prepare save and load
     if load_model_dir:
-        model, config = load_model(load_model_dir, PreLNDecoder, Config)
+        model, config = load_model(load_model_dir)
     else:
+        config_cls = import_class(config_cls)
+        model_cls = import_class(model_cls)
         # Define model config
-        config = Config(num_layers=6, d_model=64, num_heads=1, d_ff=256,
-                        vocab_size=100, context_size=64,
-                        attention_dropout_rate=0.1, residual_dropout_rate=0.1,
-                        embedding_dropout_rate=0.1, epsilon=1e-06)
-        model = PreLNDecoder(config)
+        config = config_cls(num_layers=6, d_model=64, num_heads=1, d_ff=256,
+                            vocab_size=100, context_size=64,
+                            attention_dropout_rate=0.1, residual_dropout_rate=0.1,
+                            embedding_dropout_rate=0.1, epsilon=1e-06)
+        model = model_cls(config)
         model.build(input_shape=(None, config.context_size))
         model.summary()
-
-    # Define training parameters
-    batch_size = 2
-    epochs = 1
 
     # Prepare dataset
     train_ids = np.tile(np.arange(10, dtype=np.int32), 1000)  # Prepare token ids for training data
