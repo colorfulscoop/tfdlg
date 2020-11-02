@@ -3,83 +3,12 @@ from tfchat.eval import perplexity
 from tfchat.losses import PaddingLoss
 from tfchat.schedules import WarmupLinearDecay
 from tfchat.generations import TopKTopPGenerator
+from tfchat.utils import import_class
+from tfchat.utils import save_model
+from tfchat.utils import load_model
 
 import tensorflow.keras as keras
 import numpy as np
-
-from pathlib import Path
-import json
-import inspect
-
-
-def import_class(name):
-    """Import class from string.
-
-    Args:
-        name (str): class path
-
-    Example:
-
-        >>> model_cls = import_class("tfchat.models.PreLNDecoder")
-    """
-    components = name.split(".")
-    mod = __import__(".".join(components[:-1]), fromlist=[components[-1]])
-    return getattr(mod, components[-1])
-
-
-def save_model(model_dir, model, config):
-    model_dir_path = Path(model_dir)
-
-    if not model_dir_path.exists():
-        model_dir_path.mkdir()
-
-    # Save config
-    config_path = model_dir_path / "config.json"
-    with open(config_path, "w") as f:
-        json.dump(config.dict(), f)
-
-    # Save model
-    model_path = model_dir_path / "model.h5"
-    model.save_weights(model_path)
-
-    # Save class name
-    class_path = model_dir_path / "class.json"
-    with open(class_path, "w") as f:
-        class_dict = {
-            "config": ".".join([inspect.getmodule(config).__name__, config.__class__.__name__]),
-            "model": ".".join([inspect.getmodule(model).__name__, model.__class__.__name__]),
-        }
-        json.dump(class_dict, f)
-
-
-def load_model(model_dir):
-    model_dir_path = Path(model_dir)
-
-    # Load class
-    class_path = model_dir_path / "class.json"
-    with open(class_path) as f:
-        class_dict = json.load(f)
-        config_cls = import_class(class_dict["config"])
-        model_cls = import_class(class_dict["model"])
-
-    # Load config
-    config_path = model_dir_path / "config.json"
-    with open(config_path) as f:
-        config_dict = json.load(f)
-        config = config_cls(**config_dict)
-
-    # Save model
-    model = model_cls(config)
-    # Call build to avoid the next error
-    #       ValueError: Unable to load weights saved in HDF5 format into a subclassed Model
-    #       which has not created its variables yet. Call the Model first, then load the weights.
-    model.build(input_shape=(None, config.context_size))
-
-    # Load weights
-    model_path = model_dir_path / "model.h5"
-    model.load_weights(model_path)
-
-    return model, config
 
 
 def main(save_model_dir=None, load_model_dir=None, do_eval=True,
