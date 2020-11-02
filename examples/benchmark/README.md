@@ -13,7 +13,7 @@
   * Max epochs: 10
   * Batch size: 2
   * Optimizers: Adam for Tensorflow models and AdamW for [🤗 Transformers](https://github.com/huggingface/transformers)' model
-  * Learning rate schedule: linear schedule where lr decreases from `1e-5` to `0`
+  * Learning rate schedule: linear schedule where lr decreases from `1e-4` to `0`
 
 In summary:
 
@@ -26,7 +26,8 @@ In summary:
 
 Notes:
 
-* According to [Radford+, 2018], they trained their model for 100 epochs on 64 batch sizes. However, accordint to the resource condition, this benchmark could not be conducted for such large number of epochs and batch sizes. Therefore, we setted large initial learning rate as `1e-3`, which were set as `2.5e-4` in [Radford+, 2018], and small epochs as `10` epochs in this experiment.
+* According to [Radford+, 2018], they trained their model for 100 epochs on 64 batch sizes. However, accordint to the resource condition, this benchmark could not be conducted for such large number of epochs and batch sizes.
+* I tried three types of learning rate;`1e-3`, `1e-4`, `1e-5` with Transformers.GPT2 first. `1e-3` divsersed LR in the few steps at the begining. `1e-5` did not converged (i.e. still kept improveing at the end of training). Therefore `1e-4` is used for all the experiment.
 * According to [this Gist](https://gist.github.com/thomwolf/ca135416a30ea387aa20edaa9b21f0ed), the word-level perplexity should be around 29. Because our experiment uses tokenizre-level perplexity, it is not comparative. However, this result can be one of the information about how our ppl should looks like. 
 
 ## Prepare dataset
@@ -60,12 +61,12 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 ```sh
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -p8888:8888 -it pytorch/pytorch:1.6.0-cuda10.1-cudnn7-devel
 $ pip install jupyter==1.0.0 papermill==2.1.3
-$ papermill transformers_train_scratch.ipynb output/transformers_train_scratch-wikitext_103_raw-lr_e3.ipynb -p output_dir transformers_output-lr_e3
+$ papermill transformers_train_scratch.ipynb output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb -p output_dir transformers_output-lr_e4
 ```
 
 
 ## Result
 
-| Name | PPL on WikiText-103 | Max LR | notebook |
-| --- | --- | --- | --- |
-| Transformers.GPT2 | 18.91 | 1e-5 | [output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb) |
+| Name | PPL on WikiText-103 | notebook |
+| --- | --- | --- |
+| Transformers.GPT2 | 18.25 | output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb |
