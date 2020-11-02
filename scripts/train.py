@@ -1,5 +1,5 @@
 from tfchat.data import BlockDataset
-from tfchat.metrics import perplexity
+from tfchat.eval import perplexity
 from tfchat.losses import PaddingLoss
 from tfchat.schedules import WarmupLinearDecay
 from tfchat.generations import TopKTopPGenerator
