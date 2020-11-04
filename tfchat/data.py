@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 class BlockDataset:
@@ -6,6 +7,34 @@ class BlockDataset:
         self._block_size = block_size
         self._batch_size = batch_size
         self._buffer_size = buffer_size
+
+    def _gen_iter_ids(self, text_generator, encode_fn):
+        def gen():
+            for text in text_generator():
+                for id_ in np.array(encode_fn(text), dtype=np.int32):
+                    yield id_
+        return gen
+
+    def from_text_generator(self, generator, encode_fn, shuffle=False):
+        window_length = self._block_size + 1
+
+        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator, encode_fn),
+                                                 output_types=tf.int32,
+                                                 output_shapes=tf.TensorShape([]))
+        dataset = dataset.window(window_length,
+                                 shift=self._block_size,
+                                 drop_remainder=True)
+        dataset = dataset.flat_map(lambda wd: wd.batch(window_length))
+        if shuffle:
+            dataset = dataset.shuffle(self._buffer_size)
+        dataset = dataset.batch(self._batch_size, drop_remainder=True)
+        dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
+        dataset = dataset.prefetch(1)
+
+        return dataset
+
+    def from_ids(self, ids, shuffle=False):
+        return self.build(ids=ids, shuffle=shuffle)
 
     def build(self, ids, shuffle=False):
         """
