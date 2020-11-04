@@ -83,3 +83,24 @@ def test_LineByLineDataset_from_text_generator():
 
     np.testing.assert_equal(got_X, want_X)
     np.testing.assert_equal(got_y, want_y)
+
+
+def test_LineByLineDataset_from_text_generator_large_input():
+    loader = LineByLineDataset(max_len=5, batch_size=1)
+
+    def encode(text):
+        words = text.split(" ")
+        return [int(w) for w in words]
+
+    texts = ["0 1 2 3 4 5 6"]
+
+    dataset = loader.from_text_generator(lambda: texts, encode, shuffle=False)
+
+    got_X = np.array([item[0].numpy() for item in dataset])
+    want_X = np.array([[[0, 1, 2, 3]]])
+
+    got_y = np.array([item[1].numpy() for item in dataset])
+    want_y = np.array([[[1, 2, 3, 4]]])
+
+    np.testing.assert_equal(got_X, want_X)
+    np.testing.assert_equal(got_y, want_y)

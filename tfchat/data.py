@@ -85,7 +85,7 @@ class LineByLineDataset:
     def _gen_iter_ids(self, text_generator, encode_fn):
         def gen():
             for text in text_generator():
-                yield np.array(encode_fn(text), dtype=np.int32)
+                yield np.array(encode_fn(text)[:self._max_len], dtype=np.int32)
         return gen
 
     def from_text_generator(self, generator, encode_fn, shuffle=False):
@@ -94,6 +94,7 @@ class LineByLineDataset:
                                                  output_shapes=tf.TensorShape([None]))
         if shuffle:
             dataset = dataset.shuffle(self._buffer_size)
+        # padded_shapes should be greater than the actual length
         dataset = dataset.padded_batch(batch_size=self._batch_size,
                                        padding_values=0,
                                        padded_shapes=self._max_len,
