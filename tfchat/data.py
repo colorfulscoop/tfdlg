@@ -16,6 +16,12 @@ class BlockDataset:
         return gen
 
     def from_text_generator(self, generator, encode_fn, shuffle=False):
+        """
+        Args:
+            generator: callable object which returns a generator function.
+                The generator functions returns str for each time.
+            encode_fn: function which takes str as an input and returns list of integers (i.e. List[int])
+        """
         window_length = self._block_size + 1
 
         dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator, encode_fn),
@@ -75,6 +81,28 @@ class LineByLineDataset:
         self._max_len = max_len
         self._batch_size = batch_size
         self._buffer_size = buffer_size
+
+    def _gen_iter_ids(self, text_generator, encode_fn):
+        def gen():
+            for text in text_generator():
+                yield np.array(encode_fn(text), dtype=np.int32)
+        return gen
+
+    def from_text_generator(self, generator, encode_fn, shuffle=False):
+        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator, encode_fn),
+                                                 output_types=tf.int32,
+                                                 output_shapes=tf.TensorShape([None]))
+        if shuffle:
+            dataset = dataset.shuffle(self._buffer_size)
+        dataset = dataset.padded_batch(batch_size=self._batch_size,
+                                       padding_values=0,
+                                       padded_shapes=self._max_len,
+                                       drop_remainder=True,
+                                       )
+        dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
+        dataset = dataset.prefetch(1)
+
+        return dataset
 
     def build(self, ids, shuffle=False):
         """

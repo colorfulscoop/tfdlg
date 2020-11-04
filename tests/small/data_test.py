@@ -60,3 +60,26 @@ def test_LineByLineDataset():
 
     np.testing.assert_equal(got_X, want_X)
     np.testing.assert_equal(got_y, want_y)
+
+
+def test_LineByLineDataset_from_text_generator():
+    loader = LineByLineDataset(max_len=5, batch_size=2)
+
+    def encode(text):
+        words = text.split(" ")
+        return [int(w) for w in words]
+
+    texts = ["0", "0 1", "0 1 2", "0 1 2 3", "0 1 2 3 4"]
+
+    dataset = loader.from_text_generator(lambda: texts, encode, shuffle=False)
+
+    got_X = np.array([item[0].numpy() for item in dataset])
+    want_X = np.array([[[0, 0, 0, 0], [0, 1, 0, 0]],
+                       [[0, 1, 2, 0], [0, 1, 2, 3]]])
+
+    got_y = np.array([item[1].numpy() for item in dataset])
+    want_y = np.array([[[0, 0, 0, 0], [1, 0, 0, 0]],
+                       [[1, 2, 0, 0], [1, 2, 3, 0]]])
+
+    np.testing.assert_equal(got_X, want_X)
+    np.testing.assert_equal(got_y, want_y)
