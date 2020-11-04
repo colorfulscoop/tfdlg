@@ -21,6 +21,7 @@ def main(tokenizer_model_dir, load_model_dir=None,
          train_file=None, valid_file=None, save_model_dir=None, batch_size=2, epochs=1,
          model_cls="tfchat.models.PreLNDecoder", config_cls="tfchat.configs.Config",
          dataset_cls="tfchat.data.BlockDataset",
+         warmup_steps=0, max_learning_rate=1e-4, patience=1, clipnorm=1.0,
          ):
     # Load tokenizer
     tokenizer = SentencePieceTokenizer.load(model_dir=tokenizer_model_dir)
@@ -50,42 +51,44 @@ def main(tokenizer_model_dir, load_model_dir=None,
         assert train_file and valid_file
         dataset_cls = import_class(dataset_cls)
 
+        # Prepare dataset object
         if dataset_cls == BlockDataset:
             dataset = dataset_cls(block_size=config.context_size, batch_size=batch_size)
         elif dataset_cls == LineByLineDataset:
             dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size)
         else:
             raise Exception(f"{dataset} is not one of BlockDataset, LineByLineDataset")
+        print("Dataset class:", dataset_cls)
 
         train_dataset = dataset.from_text_generator(lambda: (t.strip("\n") for t in open(train_file)), encode_fn=tokenizer.encode, shuffle=True)
         valid_dataset = dataset.from_text_generator(lambda: (t.strip("\n") for t in open(valid_file)), encode_fn=tokenizer.encode, shuffle=False)
 
-    # Train
-    if do_train:
-        # Prepare model
-        num_steps = len([_ for _ in train_dataset])
-        print("Num steps per epoch:", num_steps)
+        # Train
+        if do_train:
+            # Prepare model
+            num_steps = len([_ for _ in train_dataset])
+            print("Num steps per epoch:", num_steps)
 
-        schedule = WarmupLinearDecay(max_learning_rate=1e-4, warmup_steps=0, training_steps=num_steps*epochs)
-        optimizer = keras.optimizers.Adam(schedule, beta_1=0.9, beta_2=0.999, epsilon=1e-8, clipnorm=1.0)
-        model.compile(loss=PaddingLoss(), optimizer=optimizer)
-        history = model.fit(
-            train_dataset,
-            validation_data=valid_dataset,
-            epochs=epochs,
-            callbacks=[
-                keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True),
-                # If you want to save chekcpoints, remove the next comment out
-                #keras.callbacks.ModelCheckpoint("keras_model/", save_best_only=True)
-            ]
-        )
-        if save_model_dir:
-            save_model(save_model_dir, model, config)
+            schedule = WarmupLinearDecay(max_learning_rate=max_learning_rate, warmup_steps=warmup_steps, training_steps=num_steps*epochs)
+            optimizer = keras.optimizers.Adam(schedule, beta_1=0.9, beta_2=0.999, epsilon=1e-8, clipnorm=clipnorm)
+            model.compile(loss=PaddingLoss(), optimizer=optimizer)
+            history = model.fit(
+                train_dataset,
+                validation_data=valid_dataset,
+                epochs=epochs,
+                callbacks=[
+                    keras.callbacks.EarlyStopping(patience=patience, restore_best_weights=True),
+                    # If you want to save chekcpoints, remove the next comment out
+                    #keras.callbacks.ModelCheckpoint("keras_model/", save_best_only=True)
+                ]
+            )
+            if save_model_dir:
+                save_model(save_model_dir, model, config)
 
-    # Evaluate
-    if do_eval:
-        ppl = perplexity(model, valid_dataset)
-        print("Validation PPL:", ppl)
+        # Evaluate
+        if do_eval:
+            ppl = perplexity(model, valid_dataset)
+            print("Validation PPL:", ppl)
 
     if do_generate:
         # Generate
