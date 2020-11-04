@@ -4,8 +4,16 @@
 
 Features:
 
-* **Simple model:** TfChat adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfchat/models.py](tfchat/models.py).
-* **Useful utilities:** TfChat provides several useful utilities to prepare dataset with `tf.data.Dataset` format, learning rate schedules, loss function with padding consideration and perplexity evaluation metrics. You can find them in [examples/usage.ipynb](examples/usage.ipynb)
+* **Simple model:** TfChat adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfchat/models.py](tfchat/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
+* **Useful utilities:** TfChat provides several useful utilities. For example,
+  * [tfchat.data](tfchat/data.py) provides dataset builders to input them to your model. They generate tf.data.Dataset object
+  * [tfchat.schedules](tfchat/schedules.py) provides learning rate schedules to consider warmup steps as well as linear decay.
+  * [tfchat.losses](tfchat/losses.py) provides loss function which considers padding.
+  * [tfchat.eval](tfchat/eval.py) provides function to calculate perplexity.
+  * [tfchat.tokenizers](tfchat/tokenizers.py) provides SentencePiece tokenizer.
+  * [tfchat.generations](tfchat/generations.py) provides top-k top-p generator .
+* **Utilities for dialog modeling:** Useful utilities for dialog modeling are provided under the `tfchat.dialog` namespace.
+  * [tfchat.dialog.data](tfchat/dialog/data.py) provides a dataset builder which considers context of the dialog.
 
 ## Installation
 
@@ -97,6 +105,27 @@ gen.generate(inputs)
 
 Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more details of each classes and functions.
 
+## Scripts
+
+Change directory to `scripts`, and install dependent libraries.
+
+```sh
+$ cd scripts
+$ pip install -r requirements.txt
+```
+
+Then train tokenizer first.
+
+```sh
+$ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
+```
+
+Finally, train model.
+
+```sh
+$ python train.py --tokenizer_model_dir tokenizer_model --save_model_dir=model --load_model_dir=model --epochs=1
+$ python train.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
+```
 
 ## Model Description
 
