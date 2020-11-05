@@ -1,5 +1,6 @@
 from tfchat.data import BlockDataset
 from tfchat.data import LineByLineDataset
+from tfchat.dialog.data import ContextDataset
 from tfchat.eval import perplexity
 from tfchat.losses import PaddingLoss
 from tfchat.schedules import WarmupLinearDecay
@@ -54,14 +55,22 @@ def main(tokenizer_model_dir, load_model_dir=None,
         # Prepare dataset object
         if dataset_cls == BlockDataset:
             dataset = dataset_cls(block_size=config.context_size, batch_size=batch_size)
+            def gen(fl):
+                return (t.strip("\n") for t in open(fl))
         elif dataset_cls == LineByLineDataset:
             dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size)
+            def gen(fl):
+                return (t.strip("\n") for t in open(fl))
+        elif dataset_cls == ContextDataset:
+            dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size, sep_token_id=tokenizer.sep_token_id)
+            def gen(fl):
+                return (t.strip("\n").split("\t") for t in open(fl))
         else:
             raise Exception(f"{dataset} is not one of BlockDataset, LineByLineDataset")
         print("Dataset class:", dataset_cls)
 
-        train_dataset = dataset.from_text_generator(lambda: (t.strip("\n") for t in open(train_file)), encode_fn=tokenizer.encode, shuffle=True)
-        valid_dataset = dataset.from_text_generator(lambda: (t.strip("\n") for t in open(valid_file)), encode_fn=tokenizer.encode, shuffle=False)
+        train_dataset = dataset.from_text_generator(lambda: gen(train_file), encode_fn=tokenizer.encode, shuffle=True)
+        valid_dataset = dataset.from_text_generator(lambda: gen(valid_file), encode_fn=tokenizer.encode, shuffle=False)
 
         # Train
         if do_train:
