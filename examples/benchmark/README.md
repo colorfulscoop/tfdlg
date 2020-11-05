@@ -41,9 +41,9 @@ python get_wikitext.py 103_raw
 ### TfChat.PreLNDecoder, TfChat.PostLNDecoder
 
 ```sh
-$ docker container run --gpus all -v $(pwd):/work -w /work --rm -p 8888:8888 -it tensorflow/tensorflow:2.3.1-gpu
+$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
-$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln.ipynb -p train_file wikitext-103-raw/wiki.train.raw -p valid_file wikitext-103-raw/wiki.valid.raw -p epochs 20 -p model_type pre_ln
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb -p save_model_dir tfchat_model-lr_e4
 ```
 
 ### minGPT-TF.GPT2
@@ -69,4 +69,5 @@ $ papermill transformers_train_scratch.ipynb output/transformers_train_scratch-w
 
 | Name | PPL on WikiText-103 | notebook |
 | --- | --- | --- |
+| TfChat.PreLNDecoder.GPT2 | 20.76 | output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb |
 | Transformers.GPT2 | 18.25 | output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb |
