@@ -30,6 +30,11 @@ Notes:
 * I tried three types of learning rate;`1e-3`, `1e-4`, `1e-5` with Transformers.GPT2 first. `1e-3` divsersed LR in the few steps at the begining. `1e-5` did not converged (i.e. still kept improveing at the end of training). Therefore `1e-4` is used for all the experiment.
 * According to [this Gist](https://gist.github.com/thomwolf/ca135416a30ea387aa20edaa9b21f0ed), the word-level perplexity should be around 29. Because our experiment uses tokenizre-level perplexity, it is not comparative. However, this result can be one of the information about how our ppl should looks like. 
 
+Environment:
+
+* OS: Ubuntu 18.04.5 LTS
+* GPU: GeForce RTX 2080 Ti
+
 ## Prepare dataset
 
 ```sh
