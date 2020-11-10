@@ -123,7 +123,6 @@ $ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
 Finally, train model.
 
 ```sh
-$ python train.py --tokenizer_model_dir tokenizer_model --save_model_dir=model --load_model_dir=model --epochs=1
 $ python train.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
 ```
 
@@ -135,7 +134,6 @@ It is the decoder side implementation of [Vaswani+, 2017] .
 
 Difference from [VasWani+, 2017] is
 
-- PostLNDecoder does not share the embedding parameter with the last layer before Softmax.
 - Weight is initialized by Grolo's uniform distribution except for layers which uses ReLU. For those which uses the ReLU activation function, He's initialization is used. (The weight initialization method is not mentioned in the paper.)
 
 ### tfchat.models.PreLNDecoder
