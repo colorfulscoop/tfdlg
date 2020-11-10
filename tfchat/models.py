@@ -70,14 +70,17 @@ class MultiHeadAttention(keras.layers.Layer):
         assert d_model % num_heads == 0
 
         # Define query, key, value matrix
-        self._wq = tf.keras.layers.Dense(d_model)  # matrix shape: (seq_len, d_model)
-        self._wk = tf.keras.layers.Dense(d_model)  # matrix shape: (seq_len, d_model)
-        self._wv = tf.keras.layers.Dense(d_model)  # matrix shape: (seq_len, d_model)
+        self._wq = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
+        self._wk = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
+        self._wv = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
 
         # Output dense layer to recover the original demension
-        self._dense = tf.keras.layers.Dense(d_model)  # matrix shape: (seq_len, d_model)
+        self._dense = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
 
         # Attention dropout
+        # Do not need to set training argument when using with fit function.
+        # fit method automatically set training parameter.
+        # -> https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout
         self._attention_dropout = tf.keras.layers.Dropout(rate=attention_dropout_rate)
 
         # Define other attributes
@@ -154,14 +157,8 @@ class TransposedEmbedding(keras.layers.Layer):
         super().__init__(**kwargs)
         self._embedding_layer = embedding_layer
 
-    def build(self, input_shape):
-        # weights[0] should be called after embedding is called to initialize weight
-        # To ensure it, the following code is placed under `build` method
-        self._transposed_weights = tf.transpose(self._embedding_layer.weights[0])
-
     def call(self, inputs):
-        output = inputs @ self._transposed_weights
-        return output
+        return tf.matmul(inputs, self._embedding_layer.weights[0], transpose_b=True)
 
 
 class Decoder(tf.keras.layers.Layer):
@@ -184,8 +181,8 @@ class Decoder(tf.keras.layers.Layer):
                                             epsilon=epsilon)
                             for _ in range(num_layers)]
         self._dropout = tf.keras.layers.Dropout(rate=embedding_dropout_rate)
-        #self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
-        self._output_layer = keras.layers.Dense(vocab_size, use_bias=False)
+        self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
+        #self._output_layer = keras.layers.Dense(vocab_size, use_bias=False)
 
         self._num_layers = num_layers
         self._d_model = d_model
