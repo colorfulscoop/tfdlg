@@ -7,7 +7,7 @@
   * PreLNDecoder and PostLNDecoder from TfChat
   * GPT2 from minGPT-TF
   * GPT2 from [🤗 Transformers](https://github.com/huggingface/transformers)
-* Model hyper-parameters (e.g. d_model, n_layers, n_heads): The same as GPT2 small model
+* Model hyper-parameters (e.g. d_model, n_layers, n_heads): The same as [GPT2 small model](https://github.com/openai/gpt-2/blob/master/model_card.md)
 * Target dataset: [WikiText-103](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/)
 * Training parameters:
   * Max epochs: 10
@@ -49,6 +49,7 @@ python get_wikitext.py 103_raw
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb -p save_model_dir tfchat_model-lr_e4
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb -p model_type transformers -p save_model_dir tfchat_transformers
 ```
 
 ### minGPT-TF.GPT2
