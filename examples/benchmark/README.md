@@ -50,7 +50,7 @@ python get_wikitext.py 103_raw
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb -p save_model_dir tfchat_model-lr_e4
-$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb -p model_type transformers -p save_model_dir tfchat_transformers
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb -p model_type transformers -p save_model_dir tfchat_transformers-lr_e4
 ```
 
 ### minGPT-TF.GPT2
@@ -65,7 +65,7 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 
 ## Result
 
-| Name | Activation | Share last layer | PPL on WikiText-103 | notebook |
+| Name | Activation | Share embedding layer with last layer to softmax | WikiText-103 (PPL) | notebook |
 | --- | --- | --- | --- | --- |
 | TfChat.PreLNDecoder.GPT2 | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
 | TfChat.PreLNDecoder.GPT2 | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
@@ -85,7 +85,7 @@ The main differences from the benchmark setting are
 
 * Optimizers: [AdamW](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#adamw-pytorch)  
 
-I tried three types of learning rate;`1e-3`, `1e-4`, `1e-5` in this preliminary experiment first. `1e-3` divsersed LR in the few steps at the begining. `1e-5` did not converged (i.e. still kept improveing at the end of training). Therefore `1e-4` is used for all the experiment.
+I tried three types of learning rate;`1e-3`, `1e-4`, `1e-5` in this preliminary experiment first. `1e-3` divsersed loss in the few steps at the begining. `1e-5` did not converged (i.e. still kept improveing at the end of training). Therefore `1e-4` is used for all the experiment.
 
 ```sh
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -p8888:8888 -it pytorch/pytorch:1.6.0-cuda10.1-cudnn7-devel
@@ -93,7 +93,8 @@ $ pip install jupyter==1.0.0 papermill==2.1.3
 $ papermill transformers_train_scratch.ipynb output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb -p output_dir transformers_output-lr_e4
 ```
 
-| PPL on WikiText-103 | lr | notebook |
+| lr | WikiText-103 (PPL) | notebook |
 | --- | --- | --- |
-| 18.25 | `e-4` | [output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb) |
-| 18.91 | `e-5` | [output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb) |
+| `e-3` | (Not converged) | [output/transformers_train_scratch-wikitext_103_raw-lr_e3.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e3.ipynb) |
+| `e-4` | 18.25 | [output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e4.ipynb) |
+| `e-5` | 18.91 | [output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb](output/transformers_train_scratch-wikitext_103_raw-lr_e5.ipynb) |
