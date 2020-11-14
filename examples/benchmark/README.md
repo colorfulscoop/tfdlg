@@ -20,7 +20,7 @@
 Model summary:
 
 | Name | Model |
-| --- | --- | --- |
+| --- | --- |
 | TfChat.PreLNDecoder | PreLNDecoder from TfChat |
 | TfChat.PostLNDecoder | PostLNDecoder from TfChat |
 | minGPT-TF.GPT2 | GPT2 from minGPT-TF |
