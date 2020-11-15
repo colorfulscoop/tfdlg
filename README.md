@@ -141,9 +141,10 @@ Difference from [VasWani+, 2017] is
 PreLNDecoder replaces Post Layer Normalization architecture of PostLNDecoder with Pre Layer Normalization architecture explained in [Xiong+, 2020].
 
 This architecture is related to GPT-2 introduced in [Radford+, 2019].
-Difference against GPT2.
+The main differences from GPT2 are;
 
-- Not using GeLU
+- activation is not GeLU but ReLU
+- weight initialization is not uniform distribution
 
 ## Reference
 
