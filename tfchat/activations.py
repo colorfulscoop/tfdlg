@@ -21,5 +21,6 @@ def get(identifier):
     """
     func_map = {
         "gelu": gelu,
+        "relu": tf.keras.activations.relu
     }
-    return getattr(func_map[identifier])
+    return func_map[identifier]
