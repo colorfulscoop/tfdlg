@@ -11,6 +11,8 @@ class Config(BaseModel):
     attention_dropout_rate: float
     residual_dropout_rate: float
     embedding_dropout_rate: float
+    activation: str
+    kernel_initializer: str
     epsilon: float
 
 # ===== Configuration for Transformer [Vaswani+, 2017] ======
@@ -26,6 +28,8 @@ class TransformerConfig(Config):
     attention_dropout_rate: float = 0.1
     residual_dropout_rate: float = 0.1
     embedding_dropout_rate: float = 0.1
+    activation: str = "relu"
+    kernel_initializer: str = "he_normal"
     epsilon: float = 1e-6
 
 
@@ -43,6 +47,8 @@ class GPT2SmallConfig(Config):
     attention_dropout_rate: float = 0.1
     residual_dropout_rate: float = 0.1
     embedding_dropout_rate: float = 0.1
+    activation: str = "gelu"
+    kernel_initializer: str = "he_normal"
     epsilon: float = 1e-6
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from tfchat.activations import get as get_activation
 
 
 class PositionalEncoding(keras.layers.Layer):
@@ -136,9 +137,11 @@ class MultiHeadAttention(keras.layers.Layer):
 
 
 class PointwiseFeedForwardNetwork(keras.layers.Layer):
-    def __init__(self, d_model, d_ff):
+    def __init__(self, d_model, d_ff, activation, kernel_initializer):
         super().__init__()
-        self._mid = tf.keras.layers.Dense(d_ff, activation="relu", kernel_initializer="he_normal")
+        self._mid = tf.keras.layers.Dense(d_ff,
+                                          activation=get_activation(activation),
+                                          kernel_initializer=kernel_initializer)
         self._last = tf.keras.layers.Dense(d_model)
 
     def call(self, inputs):
@@ -166,6 +169,7 @@ class Decoder(tf.keras.layers.Layer):
                  d_ff, vocab_size, context_size,
                  residual_dropout_rate, attention_dropout_rate,
                  embedding_dropout_rate,
+                 activation, kernel_initializer,
                  epsilon=1e-6):
         super().__init__()
 
@@ -178,6 +182,8 @@ class Decoder(tf.keras.layers.Layer):
                                             d_ff=d_ff,
                                             residual_dropout_rate=residual_dropout_rate,
                                             attention_dropout_rate=attention_dropout_rate,
+                                            activation=activation,
+                                            kernel_initializer=kernel_initializer,
                                             epsilon=epsilon)
                             for _ in range(num_layers)]
         self._dropout = tf.keras.layers.Dropout(rate=embedding_dropout_rate)
@@ -241,7 +247,8 @@ def create_combined_mask(seq):
 
 class PostLN(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, d_ff, residual_dropout_rate,
-                 attention_dropout_rate, epsilon=1e-6,
+                 attention_dropout_rate, activation, kernel_initializer,
+                 epsilon=1e-6,
                  ):
         """
         [TODO] Need to check the default value of parameters - rate and epsilon
@@ -253,7 +260,7 @@ class PostLN(tf.keras.layers.Layer):
         self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
         self._fst_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
-        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
+        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff, activation=activation, kernel_initializer=kernel_initializer)
         self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
         self._snd_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
@@ -287,7 +294,8 @@ class PostLNDecoder(tf.keras.Model):
 
 class PreLN(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, d_ff, residual_dropout_rate,
-                 attention_dropout_rate, epsilon=1e-6,
+                 attention_dropout_rate, activation, kernel_initializer,
+                 epsilon=1e-6,
                  ):
         """
         [TODO] Need to check the default value of parameters - rate and epsilon
@@ -299,7 +307,7 @@ class PreLN(tf.keras.layers.Layer):
         self._fst_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
         self._fst_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 
-        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
+        self._ffn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff, activation=activation, kernel_initializer=kernel_initializer)
         self._snd_layernorm = tf.keras.layers.LayerNormalization(epsilon=epsilon)
         self._snd_dropout = tf.keras.layers.Dropout(rate=residual_dropout_rate)
 

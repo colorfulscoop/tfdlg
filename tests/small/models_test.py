@@ -62,7 +62,7 @@ def test_multi_head_attention():
 def test_pointwise_ffn():
     d_model = 128
     d_ff = 256
-    fnn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff)
+    fnn = PointwiseFeedForwardNetwork(d_model=d_model, d_ff=d_ff, activation="relu", kernel_initializer="he_normal")
 
     batch_size = 2
     seq_len = 10
@@ -77,7 +77,8 @@ def test_post_ln():
     d_model = 128
     num_heads = 8
     d_ff = 256
-    layer = PostLN(d_model=d_model, num_heads=num_heads, d_ff=d_ff, residual_dropout_rate=0.1, attention_dropout_rate=0.1)
+    layer = PostLN(d_model=d_model, num_heads=num_heads, d_ff=d_ff, residual_dropout_rate=0.1, attention_dropout_rate=0.1,
+                   activation="relu", kernel_initializer="he_normal")
 
     batch_size = 2
     seq_len = 10
@@ -123,6 +124,8 @@ def test_decoder():
                       residual_dropout_rate=0.1,
                       attention_dropout_rate=0.1,
                       embedding_dropout_rate=0.1,
+                      activation="relu",
+                      kernel_initializer="he_normal"
                       )
 
     batch_size = 2
@@ -163,6 +166,8 @@ def test_PostLNDecoder():
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
         embedding_dropout_rate=0.1,
+        activation="relu",
+        kernel_initializer="he_normal",
         epsilon=1e-6,
     )
 
@@ -188,6 +193,8 @@ def test_PostLNDecoder_fit():
         residual_dropout_rate=0.1,
         attention_dropout_rate=0.1,
         embedding_dropout_rate=0.1,
+        activation="relu",
+        kernel_initializer="he_normal",
         epsilon=1e-6,
     )
 
