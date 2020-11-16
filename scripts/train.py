@@ -37,7 +37,9 @@ def main(tokenizer_model_dir, load_model_dir=None,
         config = config_cls(num_layers=6, d_model=64, num_heads=1, d_ff=256,
                             vocab_size=100, context_size=64,
                             attention_dropout_rate=0.1, residual_dropout_rate=0.1,
-                            embedding_dropout_rate=0.1, epsilon=1e-06)
+                            embedding_dropout_rate=0.1,
+                            activation="gelu", kernel_initializer="he_normal",
+                            epsilon=1e-06)
         # Override the vocab_size with the number of tokens in tokenizer
         config.vocab_size = len(tokenizer)
 
