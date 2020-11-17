@@ -50,6 +50,7 @@ python get_wikitext.py 103_raw
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb -p save_model_dir tfchat_model-lr_e4
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb -p save_model_dir tfchat_model-gelu-lr_e4
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb -p model_type transformers -p save_model_dir tfchat_transformers-lr_e4
 ```
 
@@ -67,12 +68,12 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 
 | Name | Activation | Share embedding layer with last layer to softmax | WikiText-103 (PPL) | notebook |
 | --- | --- | --- | --- | --- |
-| TfChat.PreLNDecoder.GPT2 | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
-| TfChat.PreLNDecoder.GPT2 | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
-| TfChat.PreLNDecoder.GPT2 | GeLU | Yes | | |
+| TfChat.PreLNDecoder | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
+| TfChat.PreLNDecoder | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
+| TfChat.PreLNDecoder | [GELU](https://github.com/noriyukipy/tfchat/blob/change_default_gelu/tfchat/activations.py#L5) | Yes | | |
 | TfChat.PostLNDecoder | | | |
 | minGPT-TF.GPT2 | | | |
-| Transformers.GPT2 | [GeLU](https://github.com/huggingface/transformers/blob/v3.4.0/src/transformers/activations_tf.py#L19) | | |
+| Transformers.GPT2 | [GELU](https://github.com/huggingface/transformers/blob/v3.4.0/src/transformers/activations_tf.py#L19) | Yes | 19.52 | [output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb) |
 
 
 ## Appendix
