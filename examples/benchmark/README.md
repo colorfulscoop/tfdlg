@@ -70,7 +70,7 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 | --- | --- | --- | --- | --- |
 | TfChat.PreLNDecoder | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
 | TfChat.PreLNDecoder | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
-| TfChat.PreLNDecoder | [GELU](https://github.com/noriyukipy/tfchat/blob/change_default_gelu/tfchat/activations.py#L5) | Yes | | |
+| TfChat.PreLNDecoder | [GELU](https://github.com/noriyukipy/tfchat/blob/change_default_gelu/tfchat/activations.py#L5) | Yes | 20.13 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb) |
 | TfChat.PostLNDecoder | | | |
 | minGPT-TF.GPT2 | | | |
 | Transformers.GPT2 | [GELU](https://github.com/huggingface/transformers/blob/v3.4.0/src/transformers/activations_tf.py#L19) | Yes | 19.52 | [output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb) |
