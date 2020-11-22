@@ -1,4 +1,5 @@
 import tensorflow.keras as keras
+import tensorflow as tf
 import numpy as np
 from tfchat.models import PositionalEncoding
 from tfchat.models import scaled_dot_product_attention
@@ -33,9 +34,9 @@ def test_scaled_dot_product_attention():
     seq_len_src = 3
     d_k = 128
 
-    q = np.zeros((seq_len_tgt, d_k), dtype=np.float32)
-    k = np.zeros((seq_len_src, d_k), dtype=np.float32)
-    v = np.zeros((seq_len_src, d_k), dtype=np.float32)
+    q = tf.zeros((seq_len_tgt, d_k), dtype=tf.float32)
+    k = tf.zeros((seq_len_src, d_k), dtype=tf.float32)
+    v = tf.zeros((seq_len_src, d_k), dtype=tf.float32)
 
     dropout = keras.layers.Dropout(rate=0.1)
 

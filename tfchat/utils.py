@@ -1,3 +1,4 @@
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import tensorflow as tf
 from pathlib import Path
 import json
@@ -19,6 +20,16 @@ def set_memory_growth():
         except RuntimeError as e:
             # When memory growth is set after initialization,  RuntimeError should be raised
             print(e)
+
+
+def set_mixed_precision_policy(policy='mixed_float16'):
+    """
+    Document: https://www.tensorflow.org/guide/mixed_precision
+    """
+    policy = mixed_precision.Policy(policy)
+    mixed_precision.set_policy(policy)
+    print('Compute dtype: %s' % policy.compute_dtype)
+    print('Variable dtype: %s' % policy.variable_dtype)
 
 
 def import_class(name):

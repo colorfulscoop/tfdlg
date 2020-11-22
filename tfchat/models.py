@@ -28,7 +28,7 @@ class PositionalEncoding(keras.layers.Layer):
         return inputs + self._positional_embedding[:, :shape[-2], :shape[-1]]
 
 
-def scaled_dot_product_attention(q, k, v, mask, attention_dropout, mask_val=-1e9):
+def scaled_dot_product_attention(q, k, v, mask, attention_dropout):
     """
     where
     - vec_size_q and vec_size k should be equal to calculate scores between query and key
@@ -42,15 +42,24 @@ def scaled_dot_product_attention(q, k, v, mask, attention_dropout, mask_val=-1e9
 
     Output: shape == (..., seq_len_q, d_k)
     """
+    # mask value should be smaller when fp16 is enabled https://github.com/NVIDIA/apex/issues/93
+    if q.dtype == tf.float32:
+        mask_val = -1e9
+    elif q.dtype == tf.float16:
+        mask_val = -1e4
+    else:
+        raise Exception(f"Input type {q.dtype} is not float16 or float32")
+
     # shape: (..., seq_len_q, d_k) x (..., seq_len_k, d_k)t == (..., seq_len_q, seq_len_k)
     # (transpose_b tranpose the last two dimension)
     positionwise_score = tf.matmul(q, k, transpose_b=True)  # (..., seq_len_q, seq_len_k)
 
     # Scaling by the embed dim
-    d_k = tf.cast(tf.shape(k)[-1], tf.float32)  # d_k == vec_size_q == vec_size_k
+    d_k = tf.cast(tf.shape(k)[-1], k.dtype)  # d_k == vec_size_q == vec_size_k
     scaled_positionwise_score = positionwise_score / tf.math.sqrt(d_k)
 
     if mask is not None:
+        mask = tf.cast(mask, scaled_positionwise_score.dtype)
         scaled_positionwise_score += (mask * mask_val)
 
     # Calculate weight
@@ -161,7 +170,7 @@ class TransposedEmbedding(keras.layers.Layer):
         self._embedding_layer = embedding_layer
 
     def call(self, inputs):
-        return tf.matmul(inputs, self._embedding_layer.weights[0], transpose_b=True)
+        return tf.matmul(inputs, tf.cast(self._embedding_layer.weights[0], inputs.dtype), transpose_b=True)
 
 
 class Decoder(tf.keras.layers.Layer):
@@ -190,6 +199,8 @@ class Decoder(tf.keras.layers.Layer):
         self._output_layer = TransposedEmbedding(embedding_layer=self._embedding)
         #self._output_layer = keras.layers.Dense(vocab_size, use_bias=False)
 
+        self._to_fp32 = tf.keras.layers.Activation('linear', dtype='float32')
+
         self._num_layers = num_layers
         self._d_model = d_model
 
@@ -202,17 +213,26 @@ class Decoder(tf.keras.layers.Layer):
         """
         # seq_len = tf.shape(inputs)[1]
 
+        # Embedding returns float32 even if you use fp16 mode
+        # because the input to the Embedding layer is not float32 but int32
+        # You can find the concrete explanation here https://github.com/tensorflow/tensorflow/issues/41614
         x = self._embedding(inputs)  # shape: (batch_size, seq_len, d_model)
-        x *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
-        x = self._pos_enc(x)
+
+        x *= tf.math.sqrt(tf.cast(self._d_model, x.dtype))
+        x = self._pos_enc(x)  # dtype == float32
+
         # Residual dropout: Dropout(Embed(x) + Pos(i))
-        x = self._dropout(x, training=training)
+        x = self._dropout(x, training=training)  # dtype == float32 of float16
 
         for i in range(self._num_layers):
             x = self._dec_layers[i](inputs=x, training=training,
                                     look_ahead_mask=look_ahead_mask)
 
         x = self._output_layer(x)
+
+        # the final output before Softmax should be float32 when the policy is float16.
+        # You can find more detail here https://www.tensorflow.org/guide/mixed_precision
+        x = self._to_fp32(x)
 
         return x
 

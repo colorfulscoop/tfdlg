@@ -7,8 +7,8 @@ def gelu(x):
     This implementation is the approximation used in [Hendrycks+, 2016] https://arxiv.org/abs/1606.08415
     """
     x = tf.convert_to_tensor(x)
-    # pi = tf.cast(math.pi, x.dtype)
-    return 0.5 * x * (1.0 + tf.tanh(tf.sqrt(2.0 / math.pi) * (x + 0.044715 * tf.pow(x, 3))))
+    pi = tf.cast(math.pi, x.dtype)
+    return 0.5 * x * (1.0 + tf.tanh(tf.sqrt(2.0 / pi) * (x + 0.044715 * tf.pow(x, 3))))
 
 
 def get(identifier):

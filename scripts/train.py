@@ -8,6 +8,7 @@ from tfchat.generations import TopKTopPGenerator
 from tfchat.utils import import_class
 from tfchat.utils import save_model
 from tfchat.utils import load_model
+from tfchat.utils import set_mixed_precision_policy
 from tfchat.tokenizers import SentencePieceTokenizer
 
 import tensorflow.keras as keras
@@ -23,7 +24,12 @@ def main(tokenizer_model_dir, load_model_dir=None,
          model_cls="tfchat.models.PreLNDecoder", config_cls="tfchat.configs.Config",
          dataset_cls="tfchat.data.BlockDataset",
          warmup_steps=0, max_learning_rate=1e-4, patience=1, clipnorm=1.0,
+         fp16=False,
          ):
+
+    if fp16:
+        set_mixed_precision_policy()
+
     # Load tokenizer
     tokenizer = SentencePieceTokenizer.load(model_dir=tokenizer_model_dir)
 
