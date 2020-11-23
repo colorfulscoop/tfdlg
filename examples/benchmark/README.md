@@ -71,7 +71,7 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 ### Result
 
 | Name | Activation | Share embedding layer with last layer to softmax | WikiText-103 (PPL) | notebook |
-| --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | TfChat.PreLNDecoder | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
 | TfChat.PreLNDecoder | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
 | TfChat.PreLNDecoder | [GELU](https://github.com/noriyukipy/tfchat/blob/change_default_gelu/tfchat/activations.py#L5) | Yes | 20.13 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb) |
