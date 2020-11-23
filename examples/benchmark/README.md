@@ -1,6 +1,8 @@
 # Benchmark
 
-## Setup
+## Benchmark1 - Compare to Exsisting Framework
+
+### Setup
 
 * Tokenizer: [🤗 Transformers](https://github.com/huggingface/transformers)' [GPT2 tokenizer](https://huggingface.co/transformers/model_doc/gpt2.html#gpt2tokenizer)
 * Models:
@@ -15,6 +17,7 @@
   * Batch size: 2
   * Optimizer: Adam
   * Learning rate schedule: linear schedule where lr decreases from `1e-4` to `0`. `1e-4` was decided by the preliminary experiment.
+  * Clipnorm: 1.0
 * Metrics: Perplexity
 
 Model summary:
@@ -36,15 +39,15 @@ Environment:
 * According to [Radford+, 2018], they trained their model for 100 epochs on 64 batch sizes. However, accordint to the resource condition, this benchmark could not be conducted for such large number of epochs and batch sizes.
 * According to [this Gist](https://gist.github.com/thomwolf/ca135416a30ea387aa20edaa9b21f0ed), the word-level perplexity should be around 29. Because our experiment uses tokenizre-level perplexity, it is not comparative. However, this result can be one of the information about how our ppl should looks like. 
 
-## Prepare dataset
+### Prepare dataset
 
 ```sh
 python get_wikitext.py 103_raw
 ```
 
-## Run
+### Run
 
-### TfChat.PreLNDecoder, TfChat.PostLNDecoder, Transformers.GPT2
+#### TfChat.PreLNDecoder, TfChat.PostLNDecoder, Transformers.GPT2
 
 ```sh
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
@@ -54,26 +57,63 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb -p model_type transformers -p save_model_dir tfchat_transformers-lr_e4
 ```
 
-### minGPT-TF.GPT2
+#### minGPT-TF.GPT2
 
 ```sh
-$ docker container run --gpus all -v $(pwd):/work -w /work --rm -p 8888:8888 -it tensorflow/tensorflow:2.3.1-gpu
+$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
+$ apt install git
 $ git clone https://github.com/kamalkraj/minGPT-TF
 $ cp -r minGPT-TF/mingpt .
-$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-min_gpt.ipynb -p train_file wikitext-103-raw/wiki.train.raw -p valid_file wikitext-103-raw/wiki.valid.raw -p epochs 20 -p model_type min_gpt
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-min_gpt-lr_e4.ipynb -p model_type min_gpt -p save_model_dir tfchat_model-min_gpt-lr_e4
 ```
 
-## Result
+### Result
 
 | Name | Activation | Share embedding layer with last layer to softmax | WikiText-103 (PPL) | notebook |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- |
 | TfChat.PreLNDecoder | ReLU | No | 20.76 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-unshare-lr_e4.ipynb) |
 | TfChat.PreLNDecoder | ReLU | Yes | 20.47 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-lr_e4.ipynb) |
 | TfChat.PreLNDecoder | [GELU](https://github.com/noriyukipy/tfchat/blob/change_default_gelu/tfchat/activations.py#L5) | Yes | 20.13 | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb) |
-| TfChat.PostLNDecoder | | | |
-| minGPT-TF.GPT2 | | | |
 | Transformers.GPT2 | [GELU](https://github.com/huggingface/transformers/blob/v3.4.0/src/transformers/activations_tf.py#L19) | Yes | 19.52 | [output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb) |
+| TfChat.PostLNDecoder | | | | |
+| minGPT-TF.GPT2 | | | | |
+
+### Summary
+
+## Benchmark2 - Mixed Precision
+
+To check mixed precision works, the additional experiment is conducted.
+The difference from the first experiment is
+
+- Activation is set to GELU
+- The last layer to softmax shares the embedding
+- The clipnorm for Adam is removed because the current Adam Optimizer does accespt `clipnorm` when enable mixed precision.
+  ```txt
+  ValueError: LossScaleOptimizer does not support wrapping optimizers with a clipnorm. Optimizer <tensorflow.python.keras.optimizer_v2.adam.Adam object at 0x7f4a39cb2490> has clipnorm 1.0
+  ```
+- Mix precision is turned on
+- Batch size is changed from the same one as preivous expriment to the larger one
+
+### Run
+
+```sh
+$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
+$ pip install jupyter==1.0.0 papermill==2.1.3
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none.ipynb -p save_model_dir tfchat_model-gelu-lr_e4 -p clipnorm None
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb -p save_model_dir tfchat_model -gelu-lr_e4-clipnorm_none-fp16 -p clipnorm None -p fp16 True
+```
+
+### Result
+
+| Name | Activation | Share embedding layer with last layer to softmax | Clipnorm | Mixed Precision | Batch size | WikiText-103 (PPL) | Training time for 1 epoch | notebook |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| (Benchmark1 result) Transformers.GPT2 | GELU | Yes | 1.0 | Off | 2 | 19.52 | 24675s | [output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb) |
+| Transformers.GPT2 | GELU | Yes | None | Off | 2 | | | |
+| Transformers.GPT2 | GELU | Yes | None | On  | 2 | | 16398s | |
+| Transformers.GPT2 | GELU | Yes | None | On  | 4 | | | |
+
+
 
 
 ## Appendix
