@@ -86,13 +86,13 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 To check mixed precision works, the additional experiment is conducted.
 The difference from the first experiment is
 
-- Activation is set to GELU
+- Activation is fixed to use GELU
 - The last layer to softmax shares the embedding
-- The clipnorm for Adam is removed because the current Adam Optimizer does accespt `clipnorm` when enable mixed precision.
+- The clipnorm for Adam is removed because the current Adam Optimizer does accespt `clipnorm` parameter when enable mixed precision.
   ```txt
   ValueError: LossScaleOptimizer does not support wrapping optimizers with a clipnorm. Optimizer <tensorflow.python.keras.optimizer_v2.adam.Adam object at 0x7f4a39cb2490> has clipnorm 1.0
   ```
-- Mix precision is turned on
+- Mix precision is turned off or on
 - Batch size is changed from the same one as preivous expriment to the larger one
 
 ### Run
@@ -112,9 +112,6 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 | Transformers.GPT2 | GELU | Yes | None | Off | 2 | | | |
 | Transformers.GPT2 | GELU | Yes | None | On  | 2 | | 16398s | |
 | Transformers.GPT2 | GELU | Yes | None | On  | 4 | | | |
-
-
-
 
 ## Appendix
 
