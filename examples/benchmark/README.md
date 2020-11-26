@@ -101,17 +101,18 @@ The difference from the first experiment is
 $ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.3.1-gpu
 $ pip install jupyter==1.0.0 papermill==2.1.3
 $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none.ipynb -p save_model_dir tfchat_model-gelu-lr_e4 -p clipnorm None
-$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb -p save_model_dir tfchat_model -gelu-lr_e4-clipnorm_none-fp16 -p clipnorm None -p fp16 True
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb -p save_model_dir tfchat_model-gelu-lr_e4-clipnorm_none-fp16 -p clipnorm None -p fp16 True
+$ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16-batch_size_4.ipynb -p save_model_dir tfchat_model-gelu-lr_e4-clipnorm_none-fp16-batch_size_4 -p clipnorm None -p fp16 True -p batch_size 4
 ```
 
 ### Result
 
 | Name | Activation | Share embedding layer with last layer to softmax | Clipnorm | Mixed Precision | Batch size | WikiText-103 (PPL) | Training time for 1 epoch | notebook |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| (Benchmark1 result) Transformers.GPT2 | GELU | Yes | 1.0 | Off | 2 | 19.52 | 24675s | [output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-transformers-lr_e4.ipynb) |
+| (Benchmark1 result) TfChat.PreLNDecoder | GELU | Yes | 1.0 | Off | 2 | 20.13 | 24675s |  [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb) |
 | Transformers.GPT2 | GELU | Yes | None | Off | 2 | | | |
-| Transformers.GPT2 | GELU | Yes | None | On  | 2 | | 16398s | |
-| Transformers.GPT2 | GELU | Yes | None | On  | 4 | | | |
+| Transformers.GPT2 | GELU | Yes | None | On  | 2 | 20.09 | 16398s | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb) |
+| Transformers.GPT2 | GELU | Yes | None | On  | 4 | 20.35 | 13045s | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16-batch_size_4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16-batch_size_4.ipynb) |
 
 ## Appendix
 
