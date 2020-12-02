@@ -110,7 +110,7 @@ $ papermill tfmodel_train_scratch.ipynb output/tfmodel_train_scratch-wikitext_10
 | Name | Activation | Share embedding layer with last layer to softmax | Clipnorm | Mixed Precision | Batch size | WikiText-103 (PPL) | Training time for 1 epoch | notebook |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | (Benchmark1 result) TfChat.PreLNDecoder | GELU | Yes | 1.0 | Off | 2 | 20.13 | 24675s |  [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4.ipynb) |
-| Transformers.GPT2 | GELU | Yes | None | Off | 2 | | | |
+| Transformers.GPT2 | GELU | Yes | None | Off | 2 | 19.98 | 24472s | [output/](output/) |
 | Transformers.GPT2 | GELU | Yes | None | On  | 2 | 20.09 | 16398s | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16.ipynb) |
 | Transformers.GPT2 | GELU | Yes | None | On  | 4 | 20.35 | 13045s | [output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16-batch_size_4.ipynb](output/tfmodel_train_scratch-wikitext_103_raw-pre_ln-gelu-lr_e4-clipnorm_none-fp16-batch_size_4.ipynb) |
 
