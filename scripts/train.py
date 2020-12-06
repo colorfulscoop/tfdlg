@@ -17,6 +17,11 @@ import numpy as np
 
 def main(tokenizer_model_dir, load_model_dir=None,
          do_train=True, do_eval=True, do_generate=False,
+         # model parameters. The default value is the same as GPT2SmallConfig
+         num_layers=12, d_model=768, num_heads=12, d_ff=3072, vocab_size=50257,
+         context_size=1024, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
+         embedding_dropout_rate=0.1, activation="gelu", kernel_initializer="he_normal",
+         epsilon=1e-6,
          # Parameters for do_generate
          max_len=20,
          # Parameters for training
@@ -24,6 +29,7 @@ def main(tokenizer_model_dir, load_model_dir=None,
          model_cls="tfchat.models.PreLNDecoder", config_cls="tfchat.configs.Config",
          dataset_cls="tfchat.data.BlockDataset",
          warmup_steps=0, max_learning_rate=1e-4, patience=1, clipnorm=1.0,
+         # Flag to use mixed precision or not
          fp16=False,
          ):
 
@@ -40,12 +46,16 @@ def main(tokenizer_model_dir, load_model_dir=None,
         config_cls = import_class(config_cls)
         model_cls = import_class(model_cls)
         # Define model config
-        config = config_cls(num_layers=6, d_model=64, num_heads=1, d_ff=256,
-                            vocab_size=100, context_size=64,
-                            attention_dropout_rate=0.1, residual_dropout_rate=0.1,
-                            embedding_dropout_rate=0.1,
-                            activation="gelu", kernel_initializer="he_normal",
-                            epsilon=1e-06)
+        config = config_cls(
+            num_layers=num_layers, d_model=d_model, num_heads=num_heads,
+            d_ff=d_ff, vocab_size=vocab_size, context_size=context_size,
+            attention_dropout_rate=attention_dropout_rate,
+            residual_dropout_rate=residual_dropout_rate,
+            embedding_dropout_rate=embedding_dropout_rate,
+            activation=activation, kernel_initializer=kernel_initializer,
+            epsilon=epsilon,
+        )
+
         # Override the vocab_size with the number of tokens in tokenizer
         config.vocab_size = len(tokenizer)
 
