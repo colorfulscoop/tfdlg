@@ -9,6 +9,7 @@ from tfchat.utils import import_class
 from tfchat.utils import save_model
 from tfchat.utils import load_model
 from tfchat.utils import set_mixed_precision_policy
+from tfchat.utils import set_memory_growth
 from tfchat.tokenizers import SentencePieceTokenizer
 
 import tensorflow.keras as keras
@@ -31,10 +32,16 @@ def main(tokenizer_model_dir, load_model_dir=None,
          warmup_steps=0, max_learning_rate=1e-4, patience=1, clipnorm=1.0,
          # Flag to use mixed precision or not
          fp16=False,
+         # Set memory growth no to allocate all the memory
+         memory_growth=False,
          ):
 
     if fp16:
+        print("Set mixed precision policy")
         set_mixed_precision_policy()
+    if memory_growth:
+        print("Set memory growth")
+        set_memory_growth()
 
     # Load tokenizer
     tokenizer = SentencePieceTokenizer.load(model_dir=tokenizer_model_dir)
