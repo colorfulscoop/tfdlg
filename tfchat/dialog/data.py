@@ -14,9 +14,9 @@ class ContextDataset:
             for texts in text_generator():
                 ids = []
                 for i, txt in enumerate(texts):
-                    if i != 0:
-                        ids += [self._sep_token_id]
+                    ids += [self._sep_token_id]
                     ids += encode_fn(txt)
+                ids += [self._sep_token_id]
                 yield np.array(ids[:self._max_len], dtype=np.int32)
         return gen
 
