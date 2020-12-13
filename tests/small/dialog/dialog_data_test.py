@@ -9,23 +9,22 @@ def test_ContextDataset_test_generator():
         words = text.split(" ")
         return [int(w) for w in words]
 
-    texts = [["0", "0 1"],
-             ["0 1", "0 1 2"],
-             ["0 1 2 3 4", "0 1 2 3 4 5"],
-             ["1 2 3"],
+    texts = [["1", "1 2"],
+             ["1 2", "1 2 3"],
+             ["1 2 3 4 5", "1 2 3 4 5 6"],
+             ["1 2"],
              ["1"],
              ]
 
     dataset = loader.from_text_generator(lambda: texts, encode, shuffle=False)
 
     got_X = np.array([item[0].numpy() for item in dataset])
-    want_X = np.array([[[0, -1, 0, 1], [0, 1, -1, 0]],
-                       [[0, 1, 2, 3], [1, 2, 3, 0]]])
+    want_X = np.array([[[-1, 1, -1, 1], [-1, 1, 2, -1]],
+                       [[-1, 1, 2, 3], [-1, 1, 2, -1]]])
 
     got_y = np.array([item[1].numpy() for item in dataset])
-    want_y = np.array([[[-1, 0, 1, 0], [1, -1, 0, 1]],
-                       [[1, 2, 3, 4], [2, 3, 0, 0]]])
+    want_y = np.array([[[1, -1, 1, 2], [1, 2, -1, 1]],
+                       [[1, 2, 3, 4], [1, 2, -1, 0]]])
 
     np.testing.assert_equal(got_X, want_X)
     np.testing.assert_equal(got_y, want_y)
-
