@@ -35,13 +35,15 @@ def main(tokenizer_model_dir, load_model_dir=None,
          # Set memory growth no to allocate all the memory
          memory_growth=False,
          ):
+    # memory_growth should be set before any GPU operations
+    # (e.g. set_mixed_precision policy)
+    if memory_growth:
+        print("Set memory growth")
+        set_memory_growth()
 
     if fp16:
         print("Set mixed precision policy")
         set_mixed_precision_policy()
-    if memory_growth:
-        print("Set memory growth")
-        set_memory_growth()
 
     # Load tokenizer
     tokenizer = SentencePieceTokenizer.load(model_dir=tokenizer_model_dir)
