@@ -102,7 +102,8 @@ def main(tokenizer_model_dir, load_model_dir=None,
         # Train
         if do_train:
             # Prepare model
-            num_steps = len([_ for _ in train_dataset])
+            print("Calculating num_steps")
+            num_steps = sum(1 for _ in train_dataset)
             print("Num steps per epoch:", num_steps)
 
             schedule = WarmupLinearDecay(max_learning_rate=max_learning_rate, warmup_steps=warmup_steps, training_steps=num_steps*epochs)
