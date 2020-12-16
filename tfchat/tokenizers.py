@@ -14,11 +14,17 @@ class SentencePieceTokenizer:
                  pad_piece="<pad>", unk_piece="<unk>", bos_piece="<s>", eos_piece="</s>",
                  control_symbols=["<cls>", "<sep>"],
                  input_sentence_size=0, shuffle_input_sentence=True,
+                 add_dummy_prefix=True,
                  ):
         """SentencePiece tokenizer
 
         This module utilizes Python module for SentencePiece; https://github.com/google/sentencepiece/blob/master/python/README.md .
         All options can be found here; https://github.com/google/sentencepiece/blob/master/doc/options.md .
+
+
+        Args:
+            add_dummy_prefix (bool): If set to True,
+                add the white space before the sentence while normalizing the sentence
         """
 
         # This attribute is set after loading model
@@ -42,6 +48,7 @@ class SentencePieceTokenizer:
             control_symbols=control_symbols,
             input_sentence_size=input_sentence_size,
             shuffle_input_sentence=shuffle_input_sentence,
+            add_dummy_prefix=add_dummy_prefix,
         )
 
     def fit_on_file(self, file):
