@@ -4,12 +4,14 @@ from tfchat.tokenizers import SentencePieceTokenizer
 def main(model_dir,
          file=None, do_train=True, do_run=False,
          vocab_size=32000, input_sentence_size=0,
+         add_dummy_prefix=True,
          ):
     if do_train:
         assert file
         tokenizer = SentencePieceTokenizer(model_dir=model_dir,
                                            vocab_size=vocab_size,
-                                           input_sentence_size=input_sentence_size
+                                           input_sentence_size=input_sentence_size,
+                                           add_dummy_prefix=add_dummy_prefix,
                                            )
         tokenizer.fit_on_file(file=file)
     if do_run:
