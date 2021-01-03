@@ -17,7 +17,7 @@ Features:
 
 ## Installation
 
-Prepare your environment with Python >= 3.6 first. Then run `pip` to install this package from GitHub.
+Prepare your environment with Python >= 3.8 first. Then run `pip` to install this package from GitHub.
 
 ```sh
 $ pip install git+https://github.com/noriyukipy/tfchat
