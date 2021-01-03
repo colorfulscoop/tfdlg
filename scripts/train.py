@@ -23,8 +23,6 @@ def main(tokenizer_model_dir, load_model_dir=None,
          context_size=1024, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
          embedding_dropout_rate=0.1, activation="gelu", kernel_initializer="he_normal",
          epsilon=1e-6,
-         # Parameters for do_generate
-         max_len=20,
          # Parameters for training
          train_file=None, valid_file=None, save_model_dir=None, batch_size=2, epochs=1,
          model_cls="tfchat.models.PreLNDecoder", config_cls="tfchat.configs.Config",
@@ -34,6 +32,9 @@ def main(tokenizer_model_dir, load_model_dir=None,
          fp16=False,
          # Set memory growth no to allocate all the memory
          memory_growth=False,
+         # Parameters for do_generate
+         max_len=20,
+         sep_token="|",
          ):
     # memory_growth should be set before any GPU operations
     # (e.g. set_mixed_precision policy)
@@ -129,7 +130,7 @@ def main(tokenizer_model_dir, load_model_dir=None,
 
     if do_generate:
         # Generate
-        gen = TopKTopPGenerator(model=model, max_len=max_len)
+        generator = TopKTopPGenerator(model=model, max_len=max_len)
         while True:
             try:
                 text = input(">>> ")
@@ -137,8 +138,20 @@ def main(tokenizer_model_dir, load_model_dir=None,
                 print("")
                 print("Bye")
                 break
-            ids = tokenizer.encode(text)
-            output_ids = gen.generate(np.array([ids], dtype=np.int32))
+            # Tokenize input text.
+            # The input text is splitted at the `sep_token`.
+            # Then splitted texts are tokenized and convertd to ids per wise.
+            # Finally the ids are concatenated with `sep_token_id`
+            ids = []
+            text_segments = text.split(sep_token)
+            for i, txt in enumerate(text_segments):
+                if len(txt) > 0:
+                    ids.extend(tokenizer.encode(txt))
+                if i < len(text_segments) - 1:
+                    ids.append(tokenizer.sep_token_id)
+
+            output_ids = generator.generate(np.array([ids], dtype=np.int32))
+            output_ids = output_ids[0][len(ids):]
             tkns = tokenizer.decode(output_ids.tolist())
             print("Input: ", text)
             print("Encode:", ids)
