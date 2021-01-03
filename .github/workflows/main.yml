@@ -16,5 +16,5 @@ jobs:
       - name: Run medium size tests
         run: |
           pytest -v tests/medium
-      - name: Check code style
-        run: black --check tfchat tests
+      # - name: Check code style
+      #   run: black --check tfchat tests
