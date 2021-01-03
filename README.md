@@ -107,6 +107,8 @@ Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more d
 
 ## Scripts
 
+### Train Model
+
 Change directory to `scripts`, and install dependent libraries.
 
 ```sh
@@ -125,6 +127,14 @@ Finally, train model.
 ```sh
 $ python train.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
 ```
+
+### Serve Web API
+
+```sh
+$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8000"
+```
+
+Document is available to access to http://localhost:8000/docs
 
 ## Model Description
 
