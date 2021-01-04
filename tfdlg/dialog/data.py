@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 
-class ContextDataset:
+class DialogDataset:
     def __init__(self, max_len, batch_size, sep_token_id, buffer_size=10000):
         self._max_len = max_len
         self._batch_size = batch_size

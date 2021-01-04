@@ -97,7 +97,7 @@ def main(
     # Parameters for do_generate
     max_len=20,
     # dataset_cls defines how to append the context with id 
-    dataset_cls="tfchat.data.BlockDataset"
+    dataset_cls="tfdlg.data.BlockDataset"
 ):
     if memory_growth:
         print("Set memory growth")
@@ -118,9 +118,9 @@ def main(
 
     # Define dataset_type
     dataset_type_map = {
-        "tfchat.data.BlockDataset": DatasetType.LM,
-        "tfchat.data.LineByLineDataset": DatasetType.LM,
-        "tfchat.dialog.data.ContextDataset": DatasetType.DIALOG,
+        "tfdlg.data.BlockDataset": DatasetType.LM,
+        "tfdlg.data.LineByLineDataset": DatasetType.LM,
+        "tfdlg.dialog.data.DialogDataset": DatasetType.DIALOG,
     }
 
     # Serve API

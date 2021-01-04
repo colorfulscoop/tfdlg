@@ -1,6 +1,6 @@
 from tfdlg.data import BlockDataset
 from tfdlg.data import LineByLineDataset
-from tfdlg.dialog.data import ContextDataset
+from tfdlg.dialog.data import DialogDataset
 from tfdlg.eval import perplexity
 from tfdlg.losses import PaddingLoss
 from tfdlg.schedules import WarmupLinearDecay
@@ -25,8 +25,8 @@ def main(tokenizer_model_dir, load_model_dir=None,
          epsilon=1e-6,
          # Parameters for training
          train_file=None, valid_file=None, save_model_dir=None, batch_size=2, epochs=1,
-         model_cls="tfchat.models.PreLNDecoder", config_cls="tfchat.configs.Config",
-         dataset_cls="tfchat.data.BlockDataset",
+         model_cls="tfdlg.models.PreLNDecoder", config_cls="tfdlg.configs.Config",
+         dataset_cls="tfdlg.data.BlockDataset",
          warmup_steps=0, max_learning_rate=1e-4, patience=1, clipnorm=1.0,
          # Flag to use mixed precision or not
          fp16=False,
@@ -89,7 +89,7 @@ def main(tokenizer_model_dir, load_model_dir=None,
             dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size)
             def gen(fl):
                 return (t.strip("\n") for t in open(fl))
-        elif dataset_cls == ContextDataset:
+        elif dataset_cls == DialogDataset:
             dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size, sep_token_id=tokenizer.sep_token_id)
             def gen(fl):
                 return (t.strip("\n").split("\t") for t in open(fl))

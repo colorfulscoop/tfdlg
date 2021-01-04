@@ -1,9 +1,9 @@
-from tfdlg.dialog.data import ContextDataset
+from tfdlg.dialog.data import DialogDataset
 import numpy as np
 
 
-def test_ContextDataset_test_generator():
-    loader = ContextDataset(max_len=5, batch_size=2, sep_token_id=-1)
+def test_DialogDataset_test_generator():
+    loader = DialogDataset(max_len=5, batch_size=2, sep_token_id=-1)
 
     def encode(text):
         words = text.split(" ")
