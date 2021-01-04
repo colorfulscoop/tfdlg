@@ -1,4 +1,4 @@
-from tfchat.tokenizers import SentencePieceTokenizer
+from tfdlg.tokenizers import SentencePieceTokenizer
 
 
 def main(model_dir,

@@ -1,19 +1,19 @@
 import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
-from tfchat.models import PositionalEncoding
-from tfchat.models import scaled_dot_product_attention
-from tfchat.models import MultiHeadAttention
-from tfchat.models import PointwiseFeedForwardNetwork
-from tfchat.models import PostLN
-from tfchat.models import TransposedEmbedding
-from tfchat.models import Decoder
-from tfchat.models import create_padding_mask
-from tfchat.models import create_look_ahead_mask
-from tfchat.models import create_combined_mask
-from tfchat.models import PostLNDecoder
-from tfchat.losses import PaddingLoss
-from tfchat.configs import Config
+from tfdlg.models import PositionalEncoding
+from tfdlg.models import scaled_dot_product_attention
+from tfdlg.models import MultiHeadAttention
+from tfdlg.models import PointwiseFeedForwardNetwork
+from tfdlg.models import PostLN
+from tfdlg.models import TransposedEmbedding
+from tfdlg.models import Decoder
+from tfdlg.models import create_padding_mask
+from tfdlg.models import create_look_ahead_mask
+from tfdlg.models import create_combined_mask
+from tfdlg.models import PostLNDecoder
+from tfdlg.losses import PaddingLoss
+from tfdlg.configs import Config
 
 
 def test_position_encoding():

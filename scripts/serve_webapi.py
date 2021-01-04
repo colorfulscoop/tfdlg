@@ -1,8 +1,8 @@
-from tfchat.generations import TopKTopPGenerator
-from tfchat.tokenizers import SentencePieceTokenizer
-from tfchat.utils import set_mixed_precision_policy
-from tfchat.utils import set_memory_growth
-from tfchat.utils import load_model
+from tfdlg.generations import TopKTopPGenerator
+from tfdlg.tokenizers import SentencePieceTokenizer
+from tfdlg.utils import set_mixed_precision_policy
+from tfdlg.utils import set_memory_growth
+from tfdlg.utils import load_model
 from pydantic import BaseModel
 from fastapi import FastAPI
 from typing import List
@@ -68,12 +68,12 @@ class Handler:
 
 
 def get_version():
-    pkg_name = "tfchat"
+    pkg_name = "tfdlg"
     try:
         version = pkg_resources.get_distribution(pkg_name).version
-    except pkg_resources.DistInfoDistribution:
-        print(f"Package name is not found: {pkg_name}")
-        version = pkg_resources
+    except pkg_resources.DistributionNotFound:
+        print(f"Package name not found: {pkg_name}")
+        version = "package version info not found"
     return version
 
 

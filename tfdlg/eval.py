@@ -1,4 +1,4 @@
-from tfchat.losses import PaddingLoss
+from .losses import PaddingLoss
 import tensorflow as tf
 import numpy as np
 

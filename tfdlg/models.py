@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tfchat.activations import get as get_activation
+from .activations import get as get_activation
 
 
 class PositionalEncoding(keras.layers.Layer):

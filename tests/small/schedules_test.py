@@ -1,6 +1,6 @@
 import tensorflow as tf
-from tfchat.schedules import TransformerSchedule
-from tfchat.schedules import WarmupLinearDecay
+from tfdlg.schedules import TransformerSchedule
+from tfdlg.schedules import WarmupLinearDecay
 import numpy as np
 
 

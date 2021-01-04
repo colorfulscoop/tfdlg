@@ -1,26 +1,26 @@
-# TfChat
+# tfDlg
 
-**TfChat** is a Python library for transformer-based language model with TensorFlow.
+**tfDlg** is a Python library for transformer-based language models and dialog models with TensorFlow.
 
 Features:
 
-* **Simple model:** TfChat adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfchat/models.py](tfchat/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
-* **Useful utilities:** TfChat provides several useful utilities. For example,
-  * [tfchat.data](tfchat/data.py) provides dataset builders to input them to your model. They generate tf.data.Dataset object
-  * [tfchat.schedules](tfchat/schedules.py) provides learning rate schedules to consider warmup steps as well as linear decay.
-  * [tfchat.losses](tfchat/losses.py) provides loss function which considers padding.
-  * [tfchat.eval](tfchat/eval.py) provides function to calculate perplexity.
-  * [tfchat.tokenizers](tfchat/tokenizers.py) provides SentencePiece tokenizer.
-  * [tfchat.generations](tfchat/generations.py) provides top-k top-p generator .
-* **Utilities for dialog modeling:** Useful utilities for dialog modeling are provided under the `tfchat.dialog` namespace.
-  * [tfchat.dialog.data](tfchat/dialog/data.py) provides a dataset builder which considers context of the dialog.
+* **Simple model:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
+* **Useful utilities:** tfDlg provides several useful utilities. For example,
+  * [tfdlg.data](tfdlg/data.py) provides dataset builders to input them to your model. They generate tf.data.Dataset object
+  * [tfdlg.schedules](tfdlg/schedules.py) provides learning rate schedules to consider warmup steps as well as linear decay.
+  * [tfdlg.losses](tfdlg/losses.py) provides loss function which considers padding.
+  * [tfdlg.eval](tfdlg/eval.py) provides function to calculate perplexity.
+  * [tfdlg.tokenizers](tfdlg/tokenizers.py) provides SentencePiece tokenizer.
+  * [tfdlg.generations](tfdlg/generations.py) provides top-k top-p generator .
+* **Utilities for dialog modeling:** Useful utilities for dialog modeling are provided under the `tfdlg.dialog` namespace.
+  * [tfdlg.dialog.data](tfdlg/dialog/data.py) provides a dataset builder which considers context of the dialog.
 
 ## Installation
 
 Prepare your environment with Python >= 3.8 first. Then run `pip` to install this package from GitHub.
 
 ```sh
-$ pip install git+https://github.com/noriyukipy/tfchat
+$ pip install git+https://github.com/noriyukipy/tfdlg
 ```
 
 You can run tests with [pytest](https://docs.pytest.org/en/stable/) to make sure your installtion succeeds.
@@ -33,16 +33,16 @@ $ pytest tests/
 ## Usage
 
 
-The next code shows the overview of how to use TfChat. You can find the result of running it in [examples/overview.ipynb](examples/overview.ipynb).
+The next code shows the overview of how to use tfDlg. You can find the result of running it in [examples/overview.ipynb](examples/overview.ipynb).
 
 ```py
-from tfchat.configs import Config
-from tfchat.data import BlockDataset
-from tfchat.metrics import perplexity
-from tfchat.losses import PaddingLoss
-from tfchat.schedules import WarmupLinearDecay
-from tfchat.generations import TopKTopPGenerator
-from tfchat.models import PreLNDecoder
+from tfdlg.configs import Config
+from tfdlg.data import BlockDataset
+from tfdlg.metrics import perplexity
+from tfdlg.losses import PaddingLoss
+from tfdlg.schedules import WarmupLinearDecay
+from tfdlg.generations import TopKTopPGenerator
+from tfdlg.models import PreLNDecoder
 
 import tensorflow.keras as keras
 import numpy as np
@@ -55,7 +55,7 @@ config = Config(num_layers=6, d_model=64, num_heads=1, d_ff=256, vocab_size=100,
 
 # You can use predefined config as follows instead of defining config by yourself
 #
-# from tfchat.configs import GPT2SmallConfig
+# from tfdlg.configs import GPT2SmallConfig
 # config = GPT2SmallConfig()
 
 
@@ -107,8 +107,6 @@ Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more d
 
 ## Scripts
 
-### Train Model
-
 Change directory to `scripts`, and install dependent libraries.
 
 ```sh
@@ -116,7 +114,9 @@ $ cd scripts
 $ pip install -r requirements.txt
 ```
 
-Then train tokenizer first.
+### Train Model
+
+Train tokenizer first.
 
 ```sh
 $ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
@@ -138,7 +138,7 @@ Document is available to access to http://localhost:8000/docs
 
 ## Model Description
 
-### tfchat.models.PostLNDecoder
+### tfdlg.models.PostLNDecoder
 
 It is the decoder side implementation of [Vaswani+, 2017] .
 
@@ -146,7 +146,7 @@ Difference from [VasWani+, 2017] is
 
 - Weight is initialized by Grolo's uniform distribution except for layers which uses ReLU. For those which uses the ReLU activation function, He's initialization is used. (The weight initialization method is not mentioned in the paper.)
 
-### tfchat.models.PreLNDecoder
+### tfdlg.models.PreLNDecoder
 
 PreLNDecoder replaces Post Layer Normalization architecture of PostLNDecoder with Pre Layer Normalization architecture explained in [Xiong+, 2020].
 
