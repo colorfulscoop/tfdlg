@@ -1,5 +1,5 @@
-from tfchat.activations import gelu
-from tfchat.activations import get
+from tfdlg.activations import gelu
+from tfdlg.activations import get
 import tensorflow as tf
 import numpy as np
 

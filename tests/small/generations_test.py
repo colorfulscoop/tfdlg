@@ -1,9 +1,9 @@
 import numpy as np
-from tfchat.generations import filter_to_topk
-from tfchat.generations import filter_to_topp
-from tfchat.generations import filter_bad_ids
-from tfchat.generations import sample_multinomial
-from tfchat.generations import TopKTopPGenerator
+from tfdlg.generations import filter_to_topk
+from tfdlg.generations import filter_to_topp
+from tfdlg.generations import filter_bad_ids
+from tfdlg.generations import sample_multinomial
+from tfdlg.generations import TopKTopPGenerator
 
 
 def test_filter_to_topk():

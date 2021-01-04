@@ -1,10 +1,10 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 import numpy as np
-from tfchat.models import PreLNDecoder
-from tfchat.configs import Config
-from tfchat.losses import PaddingLoss
-from tfchat.utils import set_mixed_precision_policy
+from tfdlg.models import PreLNDecoder
+from tfdlg.configs import Config
+from tfdlg.losses import PaddingLoss
+from tfdlg.utils import set_mixed_precision_policy
 import pytest
 
 

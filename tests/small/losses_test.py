@@ -1,5 +1,5 @@
 import numpy as np
-from tfchat.losses import PaddingLoss
+from tfdlg.losses import PaddingLoss
 
 
 def test_padding_loss():

@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(
-    name="tfchat",
+    name="tfdlg",
     packages=setuptools.find_packages(),
     install_requires=[
         "tensorflow~=2.0",
@@ -13,7 +13,6 @@ setuptools.setup(
     extras_require={
         "test": ["pytest~=5.0", "black==20.8b1"],
     },
-
     version="0.1.0",
     author="Noriyuki Abe",
 )

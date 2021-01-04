@@ -1,4 +1,4 @@
-from tfchat.dialog.data import ContextDataset
+from tfdlg.dialog.data import ContextDataset
 import numpy as np
 
 

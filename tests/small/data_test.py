@@ -1,5 +1,5 @@
-from tfchat.data import BlockDataset
-from tfchat.data import LineByLineDataset
+from tfdlg.data import BlockDataset
+from tfdlg.data import LineByLineDataset
 import numpy as np
 
 
