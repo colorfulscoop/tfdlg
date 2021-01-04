@@ -68,12 +68,12 @@ class Handler:
 
 
 def get_version():
-    pkg_name = "tfchat"
+    pkg_name = "tfdlg"
     try:
         version = pkg_resources.get_distribution(pkg_name).version
-    except pkg_resources.DistInfoDistribution:
-        print(f"Package name is not found: {pkg_name}")
-        version = pkg_resources
+    except pkg_resources.DistributionNotFound:
+        print(f"Package name not found: {pkg_name}")
+        version = "package version info not found"
     return version
 
 
