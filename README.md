@@ -1,5 +1,7 @@
 # tfDlg
 
+![](https://github.com/noriyukipy/tfdlg/workflows/unittest/badge.svg)
+
 **tfDlg** is a Python library for transformer-based language models and dialog models with TensorFlow.
 
 Features:
@@ -125,7 +127,7 @@ $ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
 Finally, train model.
 
 ```sh
-$ python train.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
+$ python train_model.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
 ```
 
 ### Serve Web API
