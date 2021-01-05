@@ -76,29 +76,29 @@ def main(tokenizer_model_dir, load_model_dir=None,
     model.summary()
 
     # Prepare dataset
+    dataset_cls = import_class(dataset_cls)
+
+    # Prepare dataset object
+    if dataset_cls == BlockDataset:
+        dataset = dataset_cls(block_size=config.context_size, encode_fn=tokenizer.encode)
+        def gen(fl):
+            return (t.strip("\n") for t in open(fl))
+    elif dataset_cls == LineByLineDataset:
+        dataset = dataset_cls(max_len=config.context_size, encode_fn=tokenizer.encode)
+        def gen(fl):
+            return (t.strip("\n") for t in open(fl))
+    elif dataset_cls == DialogDataset:
+        dataset = dataset_cls(max_len=config.context_size, encode_fn=tokenizer.encode, sep_token_id=tokenizer.sep_token_id)
+        def gen(fl):
+            return (t.strip("\n").split("\t") for t in open(fl))
+    else:
+        raise Exception(f"{dataset} is not one of BlockDataset, LineByLineDataset or DialogDataset")
+    print("Dataset class:", dataset_cls)
+
     if do_train or do_eval:
         assert train_file and valid_file
-        dataset_cls = import_class(dataset_cls)
-
-        # Prepare dataset object
-        if dataset_cls == BlockDataset:
-            dataset = dataset_cls(block_size=config.context_size, batch_size=batch_size)
-            def gen(fl):
-                return (t.strip("\n") for t in open(fl))
-        elif dataset_cls == LineByLineDataset:
-            dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size)
-            def gen(fl):
-                return (t.strip("\n") for t in open(fl))
-        elif dataset_cls == DialogDataset:
-            dataset = dataset_cls(max_len=config.context_size, batch_size=batch_size, sep_token_id=tokenizer.sep_token_id)
-            def gen(fl):
-                return (t.strip("\n").split("\t") for t in open(fl))
-        else:
-            raise Exception(f"{dataset} is not one of BlockDataset, LineByLineDataset")
-        print("Dataset class:", dataset_cls)
-
-        train_dataset = dataset.from_text_generator(lambda: gen(train_file), encode_fn=tokenizer.encode, shuffle=True)
-        valid_dataset = dataset.from_text_generator(lambda: gen(valid_file), encode_fn=tokenizer.encode, shuffle=False)
+        train_dataset = dataset.from_text_generator(lambda: gen(train_file), batch_size=batch_size, shuffle=True)
+        valid_dataset = dataset.from_text_generator(lambda: gen(valid_file), batch_size=batch_size, shuffle=False)
 
         # Train
         if do_train:
@@ -142,14 +142,7 @@ def main(tokenizer_model_dir, load_model_dir=None,
             # The input text is splitted at the `sep_token`.
             # Then splitted texts are tokenized and convertd to ids per wise.
             # Finally the ids are concatenated with `sep_token_id`
-            ids = []
-            text_segments = text.split(sep_token)
-            for i, txt in enumerate(text_segments):
-                if len(txt) > 0:
-                    ids.extend(tokenizer.encode(txt))
-                if i < len(text_segments) - 1:
-                    ids.append(tokenizer.sep_token_id)
-
+            ids = dataset.convert_text_to_ids(text=text)
             output_ids = generator.generate(np.array([ids], dtype=np.int32))
             output_ids = output_ids[0][len(ids):]
             tkns = tokenizer.decode(output_ids.tolist())

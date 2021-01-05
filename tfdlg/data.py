@@ -3,19 +3,11 @@ import numpy as np
 
 
 class BlockDataset:
-    def __init__(self, block_size, batch_size, buffer_size=10000):
+    def __init__(self, block_size, encode_fn):
         self._block_size = block_size
-        self._batch_size = batch_size
-        self._buffer_size = buffer_size
+        self._encode_fn = encode_fn
 
-    def _gen_iter_ids(self, text_generator, encode_fn):
-        def gen():
-            for text in text_generator():
-                for id_ in np.array(encode_fn(text), dtype=np.int32):
-                    yield id_
-        return gen
-
-    def from_text_generator(self, generator, encode_fn, shuffle=False):
+    def from_text_generator(self, generator, batch_size=1, buffer_size=10000, shuffle=False):
         """
         Args:
             generator: callable object which returns a generator function.
@@ -24,7 +16,7 @@ class BlockDataset:
         """
         window_length = self._block_size + 1
 
-        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator, encode_fn),
+        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator),
                                                  output_types=tf.int32,
                                                  output_shapes=tf.TensorShape([]))
         dataset = dataset.window(window_length,
@@ -32,18 +24,26 @@ class BlockDataset:
                                  drop_remainder=True)
         dataset = dataset.flat_map(lambda wd: wd.batch(window_length))
         if shuffle:
-            dataset = dataset.shuffle(self._buffer_size)
-        dataset = dataset.batch(self._batch_size, drop_remainder=True)
+            dataset = dataset.shuffle(buffer_size)
+        dataset = dataset.batch(batch_size, drop_remainder=True)
         dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
         dataset = dataset.prefetch(1)
 
         return dataset
 
-    def from_ids(self, ids, shuffle=False):
-        return self.build(ids=ids, shuffle=shuffle)
+    def convert_text_to_ids(self, text: str):
+        return np.array(self._encode_fn(text), dtype=np.int32)
 
-    def build(self, ids, shuffle=False):
-        """
+    def _gen_iter_ids(self, text_generator):
+        def gen():
+            for text in text_generator():
+                for id_ in self.convert_text_to_ids(text):
+                    yield id_
+        return gen
+
+    def _build(self, ids, shuffle=False):
+        """This method will be removed in the next release.
+
         Args:
             ids (Iterator[np.int32]): Iterator which generates
                 a np.int32 value at each time
@@ -68,7 +68,7 @@ class BlockDataset:
                                  drop_remainder=True)
         dataset = dataset.flat_map(lambda wd: wd.batch(window_length))
         if shuffle:
-            dataset = dataset.shuffle(self._buffer_size)
+            dataset = dataset.shuffle(buffer_size)
         dataset = dataset.batch(self._batch_size, drop_remainder=True)
         dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
         dataset = dataset.prefetch(1)
@@ -77,25 +77,18 @@ class BlockDataset:
 
 
 class LineByLineDataset:
-    def __init__(self, max_len, batch_size, buffer_size=10000):
+    def __init__(self, max_len, encode_fn, buffer_size=10000):
         self._max_len = max_len
-        self._batch_size = batch_size
-        self._buffer_size = buffer_size
+        self._encode_fn = encode_fn
 
-    def _gen_iter_ids(self, text_generator, encode_fn):
-        def gen():
-            for text in text_generator():
-                yield np.array(encode_fn(text)[:self._max_len], dtype=np.int32)
-        return gen
-
-    def from_text_generator(self, generator, encode_fn, shuffle=False):
-        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator, encode_fn),
+    def from_text_generator(self, generator, batch_size=1, buffer_size=10000, shuffle=False):
+        dataset = tf.data.Dataset.from_generator(self._gen_iter_ids(generator),
                                                  output_types=tf.int32,
                                                  output_shapes=tf.TensorShape([None]))
         if shuffle:
-            dataset = dataset.shuffle(self._buffer_size)
+            dataset = dataset.shuffle(buffer_size)
         # padded_shapes should be greater than the actual length
-        dataset = dataset.padded_batch(batch_size=self._batch_size,
+        dataset = dataset.padded_batch(batch_size=batch_size,
                                        padding_values=0,
                                        padded_shapes=self._max_len,
                                        drop_remainder=True,
@@ -105,15 +98,25 @@ class LineByLineDataset:
 
         return dataset
 
-    def build(self, ids, shuffle=False):
-        """
+    def convert_text_to_ids(self, text: str):
+        return np.array(self._encode_fn(text)[:self._max_len], dtype=np.int32)
+
+    def _gen_iter_ids(self, text_generator):
+        def gen():
+            for text in text_generator():
+                yield self.convert_text_to_ids(text)
+        return gen
+
+    def _build(self, ids, shuffle=False):
+        """This method will be removed in the next release.
+
         Args:
             ids (Iterator[List[np.int32]]): Iterator which generates
                 a List[lnp.int32] value at each time
         """
         dataset = tf.data.Dataset.from_generator(lambda: ids, tf.int32)
         if shuffle:
-            dataset = dataset.shuffle(self._buffer_size)
+            dataset = dataset.shuffle(buffer_size)
         dataset = dataset.padded_batch(batch_size=self._batch_size,
                                        padding_values=0,
                                        padded_shapes=self._max_len,
@@ -121,5 +124,3 @@ class LineByLineDataset:
                                        )
         dataset = dataset.map(lambda x: (x[:, :-1], x[:, 1:]))
         dataset = dataset.prefetch(1)
-
-        return dataset
