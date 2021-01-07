@@ -1,5 +1,7 @@
 from tfdlg.dialog.data import DialogDataset
 import numpy as np
+from tfdlg.data import LineByLineDataset
+from tfdlg.data import BlockDataset
 
 
 def test_DialogDataset_test_generator():
@@ -68,7 +70,6 @@ def test_DialogDataset_convert_text_to_ids():
     np.testing.assert_equal(got, want)
 
 
-
 def test_DialogDataset_convert_context_to_ids():
     def encode(text):
         words = text.split(" ")
@@ -99,4 +100,28 @@ def test_DialogDataset_convert_context_to_ids():
     # Case: Nothing given
     got = dt.convert_context_to_ids(context=[])
     want = np.array([-1], dtype=np.int32)
+    np.testing.assert_equal(got, want)
+
+
+def test_BlockDataset_convert_context_to_ids():
+    def encode(text):
+        words = text.split(" ")
+        return [int(w) for w in words]
+
+    dt = BlockDataset(block_size=4, encode_fn=encode)
+
+    got = dt.convert_context_to_ids(context=["0 1", "3"], response="4 5")
+    want = np.array([0, 1, 3, 4, 5], dtype=np.int32)
+    np.testing.assert_equal(got, want)
+
+
+def test_LineByLineDataset_convert_context_to_ids():
+    def encode(text):
+        words = text.split(" ")
+        return [int(w) for w in words]
+
+    dt = LineByLineDataset(max_len=4, encode_fn=encode)
+
+    got = dt.convert_context_to_ids(context=["0 1", "3"], response="4 5")
+    want = np.array([0, 1, 3, 4], dtype=np.int32)
     np.testing.assert_equal(got, want)

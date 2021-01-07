@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from typing import List
 
 
 class BlockDataset:
@@ -40,6 +41,14 @@ class BlockDataset:
                 for id_ in self.convert_text_to_ids(text):
                     yield id_
         return gen
+
+    def convert_context_to_ids(self, context: List[str], response: str = ""):
+        ids = []
+        for text in context:
+            ids.extend(self.convert_text_to_ids(text))
+        if response:
+            ids.extend(self.convert_text_to_ids(response))
+        return ids
 
     def _build(self, ids, shuffle=False):
         """This method will be removed in the next release.
@@ -106,6 +115,15 @@ class LineByLineDataset:
             for text in text_generator():
                 yield self.convert_text_to_ids(text)
         return gen
+
+    def convert_context_to_ids(self, context: List[str], response: str = ""):
+        ids = []
+        for text in context:
+            ids.extend(self._encode_fn(text))
+        if response:
+            ids.extend(self._encode_fn(response))
+        ids = np.array(ids[:self._max_len], dtype=np.int32)
+        return ids
 
     def _build(self, ids, shuffle=False):
         """This method will be removed in the next release.

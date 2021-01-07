@@ -1,5 +1,9 @@
 from tfdlg.generations import TopKTopPGenerator
 from tfdlg.tokenizers import SentencePieceTokenizer
+from tfdlg.utils import import_class
+from tfdlg.data import BlockDataset
+from tfdlg.data import LineByLineDataset
+from tfdlg.dialog.data import DialogDataset
 from tfdlg.utils import set_mixed_precision_policy
 from tfdlg.utils import set_memory_growth
 from tfdlg.utils import load_model
@@ -14,12 +18,12 @@ import pkg_resources
 
 class Request(BaseModel):
     context: List[str]
-    response: str
+    response: str = ""
 
 
 class Response(BaseModel):
     request: Request
-    response: str = ""
+    response: str
 
 
 class DatasetType(enum.Enum):
@@ -28,41 +32,28 @@ class DatasetType(enum.Enum):
 
 
 class Handler:
-    def __init__(self, dataset_type: DatasetType, tokenizer, generator):
-        self._dataset_type = dataset_type
+    def __init__(self, dataset, tokenizer, generator):
+        self._dataset = dataset
         self._tokenizer = tokenizer
         self._generator = generator
 
     def generate(self, req: Request):
-        dataset_type = self._dataset_type
         tokenizer = self._tokenizer
         generator = self._generator
         context = req.context
         response = req.response
 
         # Prepare text to convert to ids
-        sep_token = "|"
-        if dataset_type == DatasetType.LM:
-            text = "".join(context) + response
-        elif dataset_type == DatasetType.DIALOG:
-            if context:
-                text = sep_token + sep_token.join(context)
-            text = text + sep_token + response
-        else:
-            raise Exception(f"Invalid dataset_type: {dataset_type}")
-
-        # Convert to id
-        ids = []
-        text_segments = text.split(sep_token)
-        for i, txt in enumerate(text_segments):
-            if len(txt) > 0:
-                ids.extend(tokenizer.encode(txt))
-            if i < len(text_segments) - 1:
-                ids.append(tokenizer.sep_token_id)
+        ids = self._dataset.convert_context_to_ids(context=context, response=response)
 
         output_ids = generator.generate(np.array([ids], dtype=np.int32))
         output_ids = output_ids[0][len(ids):]
         output_text = tokenizer.decode(output_ids.tolist())
+        print("Input context: ", context)
+        print("Input response: ", response)
+        print("Encode:", ids)
+        print("Gen:   ", output_ids)
+        print("Response:", output_text)
 
         return Response(request=req, response=output_text)
 
@@ -116,15 +107,20 @@ def main(
     # Prepare generator
     generator = TopKTopPGenerator(model=model, max_len=max_len)
 
-    # Define dataset_type
-    dataset_type_map = {
-        "tfdlg.data.BlockDataset": DatasetType.LM,
-        "tfdlg.data.LineByLineDataset": DatasetType.LM,
-        "tfdlg.dialog.data.DialogDataset": DatasetType.DIALOG,
-    }
+    # Prepare dataset
+    dataset_cls = import_class(dataset_cls)
+    if dataset_cls == BlockDataset:
+        dataset = dataset_cls(block_size=config.context_size, encode_fn=tokenizer.encode)
+    elif dataset_cls == LineByLineDataset:
+        dataset = dataset_cls(max_len=config.context_size, encode_fn=tokenizer.encode)
+    elif dataset_cls == DialogDataset:
+        dataset = dataset_cls(max_len=config.context_size, encode_fn=tokenizer.encode, sep_token_id=tokenizer.sep_token_id)
+    else:
+        raise Exception(f"{dataset} is not one of BlockDataset, LineByLineDataset or DialogDataset")
+    print("Dataset class:", dataset_cls)
 
     # Serve API
-    handler = Handler(dataset_type=dataset_type_map[dataset_cls], tokenizer=tokenizer, generator=generator)
+    handler = Handler(dataset=dataset, tokenizer=tokenizer, generator=generator)
     app = build_api(handler)
     uvicorn.run(app=app, host=host, port=port)
 
