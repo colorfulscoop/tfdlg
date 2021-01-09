@@ -108,7 +108,7 @@ def main(
     model, config = load_model(load_model_dir)
 
     # Prepare generator
-    generator = TopKTopPGenerator(model=model, max_len=max_len)
+    generator = TopKTopPGenerator(model=model, max_len=max_len, stop_id=tokenizer.sep_token_id)
 
     # Prepare dataset
     dataset_cls = import_class(dataset_cls)
