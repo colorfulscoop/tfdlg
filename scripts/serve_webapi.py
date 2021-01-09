@@ -46,15 +46,18 @@ class Handler:
         # Prepare text to convert to ids
         ids = self._dataset.convert_context_to_ids(context=context, response=response)
 
-        output_ids = generator.generate(np.array([ids], dtype=np.int32))
-        output_ids = output_ids[0][len(ids):]
-        output_text = tokenizer.decode(output_ids.tolist())
-        print("Input context: ", context)
-        print("Input response: ", response)
-        print("Encode:", ids)
-        print("Gen:   ", output_ids)
-        print("Response:", output_text)
-
+        if len(ids) > 0:
+            output_ids = generator.generate(np.array([ids], dtype=np.int32))
+            output_ids = output_ids[0][len(ids):]
+            output_text = tokenizer.decode(output_ids.tolist())
+            print("Input context: ", context)
+            print("Input response: ", response)
+            print("Encode:", ids)
+            print("Gen:   ", output_ids)
+            print("Response:", output_text)
+        else:
+            print("Respond empty string because of empty ids")
+            output_text = ""
         return Response(request=req, response=output_text)
 
 
