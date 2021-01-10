@@ -55,6 +55,9 @@ class Handler:
             print("Encode:", ids)
             print("Gen:   ", output_ids)
             print("Response:", output_text)
+
+            if response:
+                output_text = response + output_text
         else:
             print("Respond empty string because of empty ids")
             output_text = ""
