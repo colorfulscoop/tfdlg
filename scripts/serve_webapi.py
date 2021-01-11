@@ -56,6 +56,7 @@ class Handler:
             print("Gen:   ", output_ids)
             print("Response:", output_text)
 
+            # [TODO] This will ignore the space which is needed after the given response.
             if response:
                 output_text = response + output_text
         else:
@@ -111,7 +112,12 @@ def main(
     model, config = load_model(load_model_dir)
 
     # Prepare generator
-    generator = TopKTopPGenerator(model=model, max_len=max_len, stop_id=tokenizer.sep_token_id)
+    generator = TopKTopPGenerator(
+        model=model,
+        max_len=max_len,
+        stop_id=tokenizer.sep_token_id,
+        bad_ids=[tokenizer.unk_token_id]
+    )
 
     # Prepare dataset
     dataset_cls = import_class(dataset_cls)
