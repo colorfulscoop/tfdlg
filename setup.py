@@ -5,7 +5,7 @@ setuptools.setup(
     name="tfdlg",
     packages=setuptools.find_packages(),
     install_requires=[
-        "tensorflow>=2.3,<3.0",
+        "tensorflow>=2.4,<3",
         "sentencepiece==0.1.91",
         "scipy>=1.5.0,<2.0",
         "pydantic>=1.6.1,<2.0",
