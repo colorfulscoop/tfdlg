@@ -96,12 +96,12 @@ def main(tokenizer_model_dir, load_model_dir=None,
     print("Dataset class:", dataset_cls)
 
     if do_train or do_eval:
-        assert train_file and valid_file
-        train_dataset = dataset.from_text_generator(lambda: gen(train_file), batch_size=batch_size, shuffle=True)
         valid_dataset = dataset.from_text_generator(lambda: gen(valid_file), batch_size=batch_size, shuffle=False)
 
         # Train
         if do_train:
+            train_dataset = dataset.from_text_generator(lambda: gen(train_file), batch_size=batch_size, shuffle=True)
+
             # Prepare model
             print("Calculating num_steps")
             num_steps = sum(1 for _ in train_dataset)
