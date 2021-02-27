@@ -88,7 +88,7 @@ wiki.test.raw  wiki.train.raw wiki.valid.raw
 
 #### Train tokenizer
 
-First of all, you need train your otkenizer. Currently, only [SentencePiece](https://github.com/google/sentencepiece) tokenizer is available.
+First of all, you need train your tokenizer. Currently, only [SentencePiece](https://github.com/google/sentencepiece) tokenizer is available.
 
 ```sh
 $ python train_tokenizer.py tokenizer_model wikitext-2-raw/wiki.train.raw --vocab_size=5000
@@ -98,6 +98,8 @@ $ python train_tokenizer.py tokenizer_model wikitext-2-raw/wiki.train.raw --voca
 
 
 #### Train model
+
+Use the `train_model.py` script to train your model.
 
 ```sh
 $ python train_model.py --train_file wikitext-2-raw/wiki.train.raw --valid_file wikitext-2-raw/wiki.valid.raw --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=10 --batch_size=4 --fp16 --memory_growth
@@ -136,14 +138,20 @@ Epoch 10/10
 Validation PPL: 69.238594
 ```
 
-You can try generation after trianing your model. After the prompt `>>>`, input your words. The model generates words which follows your given words.
+Finally, you can get report of several metrics.
+
+After finishing training, you can try generation after trianing your model.
+After the prompt `>>>`, input your words.
+The model generates words which follows your given words.
 
 ```sh
 $ python train_model.py --do_train=False --do_eval=False --do_generate=True --tokenizer_model_dir tokenizer_model --load_model_dir=model --fp16 --memory_growth
 >>>
 ```
 
-#### Server web API
+#### Serve web API
+
+The trained model can be serverd as a web API by using the `serve_webapi.py` script.
 
 ```sh
 $ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8080"
@@ -154,15 +162,24 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
 ```
 
-The server is launched by [FastAPI](https://fastapi.tiangolo.com/). The document is also served on http://localhost:8080/docs
+Then the request can be sent to the server.
+
+```sh
+$ curl http://localhost:8080/generate -d '{"context": ["Long time a go,"]}' -H "content-type:applicaiton/json"
+```
+
+The server is launched by [FastAPI](https://fastapi.tiangolo.com/). Therefore a Swagger document is also available on http://localhost:8080/docs.
+You can find more detiail of how to use the API in the docuement.
 
 ### Library-based usage
+
+As a basic usage, you first need to import config files and models from the package.
 
 ```sh
 from tfdlg.configs import GPT2SmallConfig
 from tfdlg.models import PreLNDecoder
 
-config = GPT2SmallConfig
+config = GPT2SmallConfig()
 model = PreLNDecoder(config)
 ```
 
@@ -181,6 +198,8 @@ save_model("path/to/save/dir", model, config)
 from tfdlg.utils import load_model
 model = load_model("path/to/save/dir")
 ```
+
+Check more details in the scripts which are used for script-based usage.
 
 ## Model Description
 
