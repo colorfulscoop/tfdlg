@@ -1,6 +1,6 @@
 # tfDlg
 
-![](https://github.com/noriyukipy/tfdlg/workflows/unittest/badge.svg)
+![](https://github.com/colorfulscoop/tfdlg/workflows/unittest/badge.svg)
 
 **tfDlg** is a Python library for transformer-based language models and dialog models with TensorFlow.
 
@@ -24,7 +24,7 @@ Prepare your environment with Python >= 3.8, < 3.9 first.
 Then run `pip` to install this package from GitHub.
 
 ```sh
-$ pip install git+https://github.com/noriyukipy/tfdlg
+$ pip install git+https://github.com/colorfulscoop/tfdlg
 ```
 
 You can run tests with [pytest](https://docs.pytest.org/en/stable/) to make sure your installtion succeeds.
