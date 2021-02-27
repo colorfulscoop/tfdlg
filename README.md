@@ -1,12 +1,12 @@
 # tfDlg
 
-![](https://github.com/noriyukipy/tfdlg/workflows/unittest/badge.svg)
+![](https://github.com/colorfulscoop/tfdlg/workflows/unittest/badge.svg)
 
 **tfDlg** is a Python library for transformer-based language models and dialog models with TensorFlow.
 
-Features:
+:sparkles: Features :sparkles:
 
-* **Simple model:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
+* **Simple models:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
 * **Useful utilities:** tfDlg provides several useful utilities. For example,
   * [tfdlg.data](tfdlg/data.py) provides dataset builders to input them to your model. They generate tf.data.Dataset object
   * [tfdlg.schedules](tfdlg/schedules.py) provides learning rate schedules to consider warmup steps as well as linear decay.
@@ -19,10 +19,12 @@ Features:
 
 ## Installation
 
-Prepare your environment with Python >= 3.8 first. Then run `pip` to install this package from GitHub.
+Prepare your environment with Python >= 3.8, < 3.9 first.
+
+Then run `pip` to install this package from GitHub.
 
 ```sh
-$ pip install git+https://github.com/noriyukipy/tfdlg
+$ pip install git+https://github.com/colorfulscoop/tfdlg
 ```
 
 You can run tests with [pytest](https://docs.pytest.org/en/stable/) to make sure your installtion succeeds.
@@ -32,111 +34,172 @@ $ pip install pytest==6.1.1
 $ pytest tests/
 ```
 
-## Usage
+:memo: If you install tfDlg in a container environment, use the corresponded container.
 
-
-The next code shows the overview of how to use tfDlg. You can find the result of running it in [examples/overview.ipynb](examples/overview.ipynb).
-
-```py
-from tfdlg.configs import Config
-from tfdlg.data import BlockDataset
-from tfdlg.metrics import perplexity
-from tfdlg.losses import PaddingLoss
-from tfdlg.schedules import WarmupLinearDecay
-from tfdlg.generations import TopKTopPGenerator
-from tfdlg.models import PreLNDecoder
-
-import tensorflow.keras as keras
-import numpy as np
-
-
-# Define model config
-config = Config(num_layers=6, d_model=64, num_heads=1, d_ff=256, vocab_size=100,
-                context_size=64, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
-                embedding_dropout_rate=0.1, epsilon=1e-06)
-
-# You can use predefined config as follows instead of defining config by yourself
-#
-# from tfdlg.configs import GPT2SmallConfig
-# config = GPT2SmallConfig()
-
-
-# Define training parameters
-batch_size = 2
-epochs = 10
-
-# Prepare dataset
-train_ids = np.tile(np.arange(10, dtype=np.int32), 1000)  # Prepare token ids for training data
-valid_ids = np.tile(np.arange(10, dtype=np.int32), 100)   # Prepare token ids for validation data
-
-dataset = BlockDataset(block_size=config.context_size, batch_size=batch_size)
-train_dataset = dataset.build(train_ids, shuffle=True)
-valid_dataset = dataset.build(valid_ids, shuffle=False)
-
-# Prepare model
-num_steps = len([_ for _ in train_dataset])
-schedule = WarmupLinearDecay(max_learning_rate=1e-3, warmup_steps=0, training_steps=num_steps*epochs)
-optimizer = keras.optimizers.Adam(schedule, beta_1=0.9, beta_2=0.999, epsilon=1e-8, clipnorm=1.0)
-
-model = PreLNDecoder(config)
-model.compile(loss=PaddingLoss(), optimizer=optimizer)
-model.build(input_shape=(None, config.context_size))
-model.summary()
-
-# Train
-history = model.fit(
-    train_dataset,
-    validation_data=valid_dataset,
-    epochs=epochs,
-    callbacks=[
-        keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True),
-        # If you want to save chekcpoints, remove the next comment out
-        #keras.callbacks.ModelCheckpoint("keras_model/", save_best_only=True)
-    ]
-)
-
-# Evaluate
-ppl = perplexity(model, valid_dataset)
-print("Validation PPL:", ppl)
-
-# Generate
-gen = TopKTopPGenerator(model=model, max_len=3)
-inputs = np.array([[1, 2, 3, 4, 5]], dtype=np.int32)
-gen.generate(inputs)
-```
-
-Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more details of each classes and functions.
-
-## Scripts
-
-Change directory to `scripts`, and install dependent libraries.
+If you have a GPU, run a tensorflow container.
 
 ```sh
+$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.4.1-gpu bash
+```
+
+If you do not have any GPUs, use a Python container.
+
+```sh
+$ docker container run -v $(pwd):/work -w /work --rm -it python:3.8.7-buster bash
+```
+
+## Usage
+
+tfDlg provides two ways to use in ways of **script-based** and **package-based**.
+
+tfDlg is a Python package to enable you to use all the functionalities from your Python scripts. This usual way to use tfDlg as a Python package is called a package-based usage here.
+
+On the other hand, script-based utilizes the pacakge to provide fundamental scripts for training, evaluation and serving your models.
+In this viewpoint, script-based can be considered as examples of how to use tfDlg as a Python package.
+
+Take a look at the script-based usage first.
+
+### Script-based usage
+
+Get scripts from GitHub first. Then install dependencies.
+
+```sh
+$ git clone https://github.com/colorfulscoop/tfdlg
 $ cd scripts
 $ pip install -r requirements.txt
 ```
 
-### Train Model
+### Prepare corpus
 
-Train tokenizer first.
-
-```sh
-$ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
-```
-
-Finally, train model.
+In this example, we will use [WikiText-2](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) to train and evaluate a language model.
+tfDlg provides a simple script to download the corpus from the official web site in the [example/wikitext](example/wikitext) directory.
+Use the script [examples/wikitext/get_wikitext.py](tfdlg/examples/wikitext/get_wikitext.py) to download the data first.
 
 ```sh
-$ python train_model.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
+$ python ../examples/wikitext/get_wikitext.py 2_raw
 ```
 
-### Serve Web API
+This command downloads WikiText-2 consisting of raw level tokens. You can find the corpus under the `wikitext-2-raw` directory.
 
 ```sh
-$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8000"
+$ ls wikitext-2-raw
+wiki.test.raw  wiki.train.raw wiki.valid.raw
 ```
 
-Document is available to access to http://localhost:8000/docs
+#### Train tokenizer
+
+First of all, you need train your tokenizer. Currently, only [SentencePiece](https://github.com/google/sentencepiece) tokenizer is available.
+
+```sh
+$ python train_tokenizer.py tokenizer_model wikitext-2-raw/wiki.train.raw --vocab_size=5000
+```
+
+:memo: If you train a tokenizer for languages which do not separate words with white spaces, consider to use `--add_dummy_prefix=False` option to avoid adding a dummy white space at the beginnin of a text (detault is `True` to add a white space at the beginning of a text).
+
+
+#### Train model
+
+Use the `train_model.py` script to train your model.
+
+```sh
+$ python train_model.py --train_file wikitext-2-raw/wiki.train.raw --valid_file wikitext-2-raw/wiki.valid.raw --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=10 --batch_size=4 --fp16 --memory_growth
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+decoder (Decoder)            multiple                  88857600
+=================================================================
+Total params: 88,857,600
+Trainable params: 88,857,600
+Non-trainable params: 0
+_________________________________________________________________
+Dataset class: <class 'tfdlg.data.BlockDataset'>
+Calculating num_steps
+Num steps per epoch: 805
+Epoch 1/10
+805/805 [==============================] - 373s 310ms/step - loss: 8.1276 - val_loss: 5.0362
+Epoch 2/10
+805/805 [==============================] - 360s 310ms/step - loss: 4.9925 - val_loss: 4.7901
+Epoch 3/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.6732 - val_loss: 4.6482
+Epoch 4/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.4603 - val_loss: 4.5143
+Epoch 5/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.2946 - val_loss: 4.4289
+Epoch 6/10
+805/805 [==============================] - 361s 311ms/step - loss: 4.1440 - val_loss: 4.3577
+Epoch 7/10
+805/805 [==============================] - 361s 311ms/step - loss: 4.0120 - val_loss: 4.3088
+Epoch 8/10
+805/805 [==============================] - 362s 311ms/step - loss: 3.9132 - val_loss: 4.2694
+Epoch 9/10
+805/805 [==============================] - 361s 311ms/step - loss: 3.8153 - val_loss: 4.2437
+Epoch 10/10
+{'loss': 4.2375584, 'perplexity': 69.238594, 'num_batches': 84, 'num_tokens': 344064}
+Validation PPL: 69.238594
+```
+
+Finally, you can get report of several metrics.
+
+After finishing training, you can try generation after trianing your model.
+After the prompt `>>>`, input your words.
+The model generates words which follows your given words.
+
+```sh
+$ python train_model.py --do_train=False --do_eval=False --do_generate=True --tokenizer_model_dir tokenizer_model --load_model_dir=model --fp16 --memory_growth
+>>>
+```
+
+#### Serve web API
+
+The trained model can be serverd as a web API by using the `serve_webapi.py` script.
+
+```sh
+$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8080"
+Dataset class: <class 'tfdlg.dialog.data.DialogDataset'>
+INFO:     Started server process [435]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+```
+
+Then the request can be sent to the server.
+
+```sh
+$ curl http://localhost:8080/generate -d '{"context": ["Long time a go,"]}' -H "content-type:applicaiton/json"
+```
+
+The server is launched by [FastAPI](https://fastapi.tiangolo.com/). Therefore a Swagger document is also available on http://localhost:8080/docs.
+You can find more detiail of how to use the API in the docuement.
+
+### Library-based usage
+
+As a basic usage, you first need to import config files and models from the package.
+
+```py
+from tfdlg.configs import GPT2SmallConfig
+from tfdlg.models import PreLNDecoder
+
+config = GPT2SmallConfig()
+model = PreLNDecoder(config)
+```
+
+Then you can train here in the usual manner of training Tensorflow Keras models by `fit` method.
+
+After training your model, `save_model` saves the model parameter as well as the model hyper parameters which are specified in `tfdlg.configs.Config` class.
+
+```py
+from tfdlg.utils import save_model
+save_model("path/to/save/dir", model, config)
+```
+
+`load_model` can be used to load your model from the directory where you saved it.
+
+```py
+from tfdlg.utils import load_model
+model = load_model("path/to/save/dir")
+```
+
+Check more details in the scripts which are used for script-based usage.
 
 ## Model Description
 
