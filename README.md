@@ -6,7 +6,7 @@
 
 :sparkles: Features :sparkles:
 
-* **Simple model:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
+* **Simple models:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
 * **Useful utilities:** tfDlg provides several useful utilities. For example,
   * [tfdlg.data](tfdlg/data.py) provides dataset builders to input them to your model. They generate tf.data.Dataset object
   * [tfdlg.schedules](tfdlg/schedules.py) provides learning rate schedules to consider warmup steps as well as linear decay.
@@ -34,8 +34,7 @@ $ pip install pytest==6.1.1
 $ pytest tests/
 ```
 
-**Note:**
-If you install tfDlg in a container environment, use the corresponded container.
+:memo: If you install tfDlg in a container environment, use the corresponded container.
 
 If you have a GPU, run a tensorflow container.
 
@@ -51,19 +50,45 @@ $ docker container run -v $(pwd):/work -w /work --rm -it python:3.8.7-buster bas
 
 ## Usage
 
-tfDlg provides two ways to use in ways of *script-based* and *library-based*.
+tfDlg provides two ways to use in ways of **script-based** and **package-based**.
+
+tfDlg is a Python package to enable you to use all the functionalities from your Python scripts. This usual way to use tfDlg as a Python package is called a package-based usage here.
+
+On the other hand, script-based utilizes the pacakge to provide fundamental scripts for training, evaluation and serving your models.
+In this viewpoint, script-based can be considered as examples of how to use tfDlg as a Python package.
+
+Take a look at the script-based usage first.
 
 ### Script-based usage
 
+Get scripts from GitHub first. Then install dependencies.
+
 ```sh
-$ pip install git+https://github.com/colorfulscoop/tfdlg
+$ git clone git+https://github.com/colorfulscoop/tfdlg
 $ cd scripts
 $ pip install -r requirements.txt
 ```
 
+### Prepare corpus
+
+In this example, we will use [WikiText-2](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) to train and evaluate a language model.
+tfDlg provides a simple script to download the corpus from the official web site in the [example/wikitext](example/wikitext) directory.
+Use the script [examples/wikitext/get_wikitext.py](tfdlg/examples/wikitext/get_wikitext.py) to download the data first.
+
+```sh
+$ python ../examples/wikitext/get_wikitext.py 2_raw
+```
+
+This command downloads WikiText-2 consisting of raw level tokens. You can find the corpus under the `wikitext-2-raw` directory.
+
+```sh
+$ ls wikitext-2-raw
+wiki.test.raw  wiki.train.raw wiki.valid.raw
+```
+
 #### Train tokenizer
 
-Train your tokenizer. [SentencePiece](https://github.com/google/sentencepiece) is adopted as the tokenizer.
+First of all, you need train your otkenizer. Currently, only [SentencePiece](https://github.com/google/sentencepiece) tokenizer is available.
 
 ```sh
 $ python train_tokenizer.py tokenizer_model wikitext-2-raw/wiki.train.raw --vocab_size=5000
