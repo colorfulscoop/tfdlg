@@ -64,7 +64,7 @@ Take a look at the script-based usage first.
 Get scripts from GitHub first. Then install dependencies.
 
 ```sh
-$ git clone git+https://github.com/colorfulscoop/tfdlg
+$ git clone https://github.com/colorfulscoop/tfdlg
 $ cd scripts
 $ pip install -r requirements.txt
 ```
@@ -175,7 +175,7 @@ You can find more detiail of how to use the API in the docuement.
 
 As a basic usage, you first need to import config files and models from the package.
 
-```sh
+```py
 from tfdlg.configs import GPT2SmallConfig
 from tfdlg.models import PreLNDecoder
 
@@ -187,14 +187,14 @@ Then you can train here in the usual manner of training Tensorflow Keras models 
 
 After training your model, `save_model` saves the model parameter as well as the model hyper parameters which are specified in `tfdlg.configs.Config` class.
 
-```sh
+```py
 from tfdlg.utils import save_model
 save_model("path/to/save/dir", model, config)
 ```
 
 `load_model` can be used to load your model from the directory where you saved it.
 
-```sh
+```py
 from tfdlg.utils import load_model
 model = load_model("path/to/save/dir")
 ```
