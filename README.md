@@ -4,7 +4,7 @@
 
 **tfDlg** is a Python library for transformer-based language models and dialog models with TensorFlow.
 
-Features:
+:sparkles: Features :sparkles:
 
 * **Simple model:** tfDlg adopts simple and easy-to-understand model implementation to enable users to customize models for their research and interests. You can find the model implementation in [tfdlg/models.py](tfdlg/models.py). You can utilize these models in the usual manner of tf.keras (e.g. you can call compile and build method for them).
 * **Useful utilities:** tfDlg provides several useful utilities. For example,
@@ -19,7 +19,9 @@ Features:
 
 ## Installation
 
-Prepare your environment with Python >= 3.8 first. Then run `pip` to install this package from GitHub.
+Prepare your environment with Python >= 3.8, < 3.9 first.
+
+Then run `pip` to install this package from GitHub.
 
 ```sh
 $ pip install git+https://github.com/noriyukipy/tfdlg
@@ -32,111 +34,128 @@ $ pip install pytest==6.1.1
 $ pytest tests/
 ```
 
-## Usage
+**Note:**
+If you install tfDlg in a container environment, use the corresponded container.
 
-
-The next code shows the overview of how to use tfDlg. You can find the result of running it in [examples/overview.ipynb](examples/overview.ipynb).
-
-```py
-from tfdlg.configs import Config
-from tfdlg.data import BlockDataset
-from tfdlg.metrics import perplexity
-from tfdlg.losses import PaddingLoss
-from tfdlg.schedules import WarmupLinearDecay
-from tfdlg.generations import TopKTopPGenerator
-from tfdlg.models import PreLNDecoder
-
-import tensorflow.keras as keras
-import numpy as np
-
-
-# Define model config
-config = Config(num_layers=6, d_model=64, num_heads=1, d_ff=256, vocab_size=100,
-                context_size=64, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
-                embedding_dropout_rate=0.1, epsilon=1e-06)
-
-# You can use predefined config as follows instead of defining config by yourself
-#
-# from tfdlg.configs import GPT2SmallConfig
-# config = GPT2SmallConfig()
-
-
-# Define training parameters
-batch_size = 2
-epochs = 10
-
-# Prepare dataset
-train_ids = np.tile(np.arange(10, dtype=np.int32), 1000)  # Prepare token ids for training data
-valid_ids = np.tile(np.arange(10, dtype=np.int32), 100)   # Prepare token ids for validation data
-
-dataset = BlockDataset(block_size=config.context_size, batch_size=batch_size)
-train_dataset = dataset.build(train_ids, shuffle=True)
-valid_dataset = dataset.build(valid_ids, shuffle=False)
-
-# Prepare model
-num_steps = len([_ for _ in train_dataset])
-schedule = WarmupLinearDecay(max_learning_rate=1e-3, warmup_steps=0, training_steps=num_steps*epochs)
-optimizer = keras.optimizers.Adam(schedule, beta_1=0.9, beta_2=0.999, epsilon=1e-8, clipnorm=1.0)
-
-model = PreLNDecoder(config)
-model.compile(loss=PaddingLoss(), optimizer=optimizer)
-model.build(input_shape=(None, config.context_size))
-model.summary()
-
-# Train
-history = model.fit(
-    train_dataset,
-    validation_data=valid_dataset,
-    epochs=epochs,
-    callbacks=[
-        keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True),
-        # If you want to save chekcpoints, remove the next comment out
-        #keras.callbacks.ModelCheckpoint("keras_model/", save_best_only=True)
-    ]
-)
-
-# Evaluate
-ppl = perplexity(model, valid_dataset)
-print("Validation PPL:", ppl)
-
-# Generate
-gen = TopKTopPGenerator(model=model, max_len=3)
-inputs = np.array([[1, 2, 3, 4, 5]], dtype=np.int32)
-gen.generate(inputs)
-```
-
-Please take a look at [examples/usage.ipynb](examples/usage.ipynb) to get more details of each classes and functions.
-
-## Scripts
-
-Change directory to `scripts`, and install dependent libraries.
+If you have a GPU, run a tensorflow container.
 
 ```sh
+$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.4.1-gpu bash
+```
+
+If you do not have any GPUs, use a Python container.
+
+```sh
+$ docker container run -v $(pwd):/work -w /work --rm -it python:3.8.7-buster bash
+```
+
+## Usage
+
+tfDlg provides two ways to use in ways of *script-based* and *library-based*.
+
+### Script-based usage
+
+```sh
+$ pip install git+https://github.com/colorfulscoop/tfdlg
 $ cd scripts
 $ pip install -r requirements.txt
 ```
 
-### Train Model
+#### Train tokenizer
 
-Train tokenizer first.
-
-```sh
-$ python train_tokenizer.py tokenizer_model train.txt --vocab_size=5000
-```
-
-Finally, train model.
+Train your tokenizer. [SentencePiece](https://github.com/google/sentencepiece) is adopted as the tokenizer.
 
 ```sh
-$ python train_model.py --train_file train.txt --valid_file valid.txt --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=2 --batch_size=4
+$ python train_tokenizer.py tokenizer_model wikitext-2-raw/wiki.train.raw --vocab_size=5000
 ```
 
-### Serve Web API
+:memo: If you train a tokenizer for languages which do not separate words with white spaces, consider to use `--add_dummy_prefix=False` option to avoid adding a dummy white space at the beginnin of a text (detault is `True` to add a white space at the beginning of a text).
+
+
+#### Train model
 
 ```sh
-$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8000"
+$ python train_model.py --train_file wikitext-2-raw/wiki.train.raw --valid_file wikitext-2-raw/wiki.valid.raw --tokenizer_model_dir tokenizer_model --save_model_dir=model --epochs=10 --batch_size=4 --fp16 --memory_growth
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+decoder (Decoder)            multiple                  88857600
+=================================================================
+Total params: 88,857,600
+Trainable params: 88,857,600
+Non-trainable params: 0
+_________________________________________________________________
+Dataset class: <class 'tfdlg.data.BlockDataset'>
+Calculating num_steps
+Num steps per epoch: 805
+Epoch 1/10
+805/805 [==============================] - 373s 310ms/step - loss: 8.1276 - val_loss: 5.0362
+Epoch 2/10
+805/805 [==============================] - 360s 310ms/step - loss: 4.9925 - val_loss: 4.7901
+Epoch 3/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.6732 - val_loss: 4.6482
+Epoch 4/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.4603 - val_loss: 4.5143
+Epoch 5/10
+805/805 [==============================] - 361s 310ms/step - loss: 4.2946 - val_loss: 4.4289
+Epoch 6/10
+805/805 [==============================] - 361s 311ms/step - loss: 4.1440 - val_loss: 4.3577
+Epoch 7/10
+805/805 [==============================] - 361s 311ms/step - loss: 4.0120 - val_loss: 4.3088
+Epoch 8/10
+805/805 [==============================] - 362s 311ms/step - loss: 3.9132 - val_loss: 4.2694
+Epoch 9/10
+805/805 [==============================] - 361s 311ms/step - loss: 3.8153 - val_loss: 4.2437
+Epoch 10/10
+{'loss': 4.2375584, 'perplexity': 69.238594, 'num_batches': 84, 'num_tokens': 344064}
+Validation PPL: 69.238594
 ```
 
-Document is available to access to http://localhost:8000/docs
+You can try generation after trianing your model. After the prompt `>>>`, input your words. The model generates words which follows your given words.
+
+```sh
+$ python train_model.py --do_train=False --do_eval=False --do_generate=True --tokenizer_model_dir tokenizer_model --load_model_dir=model --fp16 --memory_growth
+>>>
+```
+
+#### Server web API
+
+```sh
+$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8080"
+Dataset class: <class 'tfdlg.dialog.data.DialogDataset'>
+INFO:     Started server process [435]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+```
+
+The server is launched by [FastAPI](https://fastapi.tiangolo.com/). The document is also served on http://localhost:8080/docs
+
+### Library-based usage
+
+```sh
+from tfdlg.configs import GPT2SmallConfig
+from tfdlg.models import PreLNDecoder
+
+config = GPT2SmallConfig
+model = PreLNDecoder(config)
+```
+
+Then you can train here in the usual manner of training Tensorflow Keras models by `fit` method.
+
+After training your model, `save_model` saves the model parameter as well as the model hyper parameters which are specified in `tfdlg.configs.Config` class.
+
+```sh
+from tfdlg.utils import save_model
+save_model("path/to/save/dir", model, config)
+```
+
+`load_model` can be used to load your model from the directory where you saved it.
+
+```sh
+from tfdlg.utils import load_model
+model = load_model("path/to/save/dir")
+```
 
 ## Model Description
 
