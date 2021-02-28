@@ -36,17 +36,10 @@ $ pytest tests/
 
 :memo: If you install tfDlg in a container environment, use the corresponded container.
 
-If you have a GPU, run a tensorflow container.
-
-```sh
-$ docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.4.1-gpu bash
-```
-
-If you do not have any GPUs, use a Python container.
-
-```sh
-$ docker container run -v $(pwd):/work -w /work --rm -it python:3.8.7-buster bash
-```
+| GPU use | Container | Command example |
+| --- | --- | --- |
+| Yes | tensorflow/tensorflow:2.4.1-gpu bash | `docker container run --gpus all -v $(pwd):/work -w /work --rm -it tensorflow/tensorflow:2.4.1-gpu bash` |
+| No | python:3.8.7-buster | `docker container run -v $(pwd):/work -w /work --rm -it python:3.8.7-buster bash` |
 
 ## Usage
 
