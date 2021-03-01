@@ -204,6 +204,16 @@ Difference from [VasWani+, 2017] is
 
 - Weight is initialized by Grolo's uniform distribution except for layers which uses ReLU. For those which uses the ReLU activation function, He's initialization is used. (The weight initialization method is not mentioned in the paper.)
 
+Usage:
+
+```py
+from tfdlg.configs import GPT2SmallConfig
+from tfdlg.models import PostLNDecoder
+
+config = GPT2SmallConfig()
+model = PostLNDecoder(config)
+```
+
 ### tfdlg.models.PreLNDecoder
 
 PreLNDecoder replaces Post Layer Normalization architecture of PostLNDecoder with Pre Layer Normalization architecture explained in [Xiong+, 2020].
@@ -211,8 +221,17 @@ PreLNDecoder replaces Post Layer Normalization architecture of PostLNDecoder wit
 This architecture is related to GPT-2 introduced in [Radford+, 2019].
 The main differences from GPT2 are;
 
-- activation is not GeLU but ReLU
 - weight initialization is not uniform distribution
+
+Usage:
+
+```py
+from tfdlg.configs import GPT2SmallConfig
+from tfdlg.models import PreLNDecoder
+
+config = GPT2SmallConfig()
+model = PreLNDecoder(config)
+```
 
 ## Reference
 
