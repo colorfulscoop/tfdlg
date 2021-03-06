@@ -53,7 +53,8 @@ class DialogClsDataset:
         false_ds = tf.data.Dataset.zip((context_ds, response_shuf_ds))
         false_ds = false_ds.map(_compose_label(label=0, max_len=max_len+1, pad_value=0))
 
-        ds = true_ds.concatenate(false_ds)
+        ds = tf.data.Dataset.from_tensor_slices([true_ds, false_ds]).interleave(lambda x: x)
+
         if shuffle:
             ds = ds.shuffle(buffer_size=buffer_size, seed=seed)
 
@@ -67,14 +68,15 @@ class DialogClsDataset:
         # (<tf.Tensor 'IteratorGetNext:0' shape=<unknown> dtype=int32>, <tf.Tensor 'ExpandDims:0' shape=(4, 1) dtype=int32>)
         #
         # Check details in https://github.com/tensorflow/tensorflow/issues/37193
-        def set_shape(ids, cls_id, label):
+        def set_shape(ids, target_ids, cls_id, label):
             ids.set_shape([batch_size, max_len+1])
-            return (ids, cls_id, label)
+            target_ids.set_shape([batch_size, max_len+1])
+            return (ids, target_ids, cls_id, label)
 
         ds = ds.map(set_shape)
 
         # returns batches of ((ids, cls_ids), (ids, label))
-        ds = ds.map(lambda ids, cls_id, label: ((ids[:, :-1], cls_id), (ids[:, 1:], label)))
+        ds = ds.map(lambda ids, target_ids, cls_id, label: ((ids[:, :-1], cls_id), (target_ids[:, 1:], label)))
         ds = ds.prefetch(1)
 
         return ds
@@ -106,5 +108,13 @@ def _compose_label(label, max_len, pad_value):
         cls_id = tf.math.minimum(len(ids) - 1, max_len-2)
         if len(ids) < max_len:
             ids = tf.concat([ids, tf.zeros([max_len - len(ids)], dtype=tf.int32)], axis=0)
-        return (ids, cls_id, label)
+
+        # when label == 0, target should be ignored
+        if label == 1:
+            target_ids = ids
+        elif label == 0:
+            target_ids = tf.zeros([len(ids)], dtype=tf.int32)
+        else:
+            raise Exception(f"{label} should be 1 or 0")
+        return (ids, target_ids, cls_id, label)
     return tmp
