@@ -36,8 +36,10 @@ class WarmupLinearDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         self._training_steps = training_steps
 
     def __call__(self, step):
+        step = tf.cast(step, tf.float32)
         fst = step / tf.math.maximum(1.0, self._warmup_steps)
         snd = (self._training_steps - step) / tf.math.maximum(1.0, self._training_steps - self._warmup_steps)
+
         return self._max_learning_rate * tf.math.maximum(tf.math.minimum(fst, snd), 0)
 
     def get_config(self):
