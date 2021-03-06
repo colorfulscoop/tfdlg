@@ -204,7 +204,12 @@ class Decoder(tf.keras.layers.Layer):
         self._num_layers = num_layers
         self._d_model = d_model
 
-    def call(self, inputs, training, look_ahead_mask):
+        # parameters for cls
+        self._cls_output_layer = tf.keras.layers.Dense(1,
+                                                       activation=get_activation(activation),
+                                                       kernel_initializer=kernel_initializer)
+
+    def call(self, inputs, training, look_ahead_mask, cls_ids=None):
         """
         Args:
             inputs: shape == (batch_size, seq_len)
@@ -225,16 +230,24 @@ class Decoder(tf.keras.layers.Layer):
         x = self._dropout(x, training=training)  # dtype == float32 of float16
 
         for i in range(self._num_layers):
+            # output shape of x: (batch_size, seq_len, d_model)
             x = self._dec_layers[i](inputs=x, training=training,
                                     look_ahead_mask=look_ahead_mask)
 
         x = self._output_layer(x)
+        cls_input = x
 
         # the final output before Softmax should be float32 when the policy is float16.
         # You can find more detail here https://www.tensorflow.org/guide/mixed_precision
         x = self._to_fp32(x)
 
-        return x
+        if cls_ids is not None:
+            cls_output = tf.gather(cls_input, cls_ids, axis=1, batch_dims=1)  # Shape: (batch_size, d_model)
+            cls_output = self._cls_output_layer(cls_output)
+            cls_output = self._to_fp32(cls_output)
+            return x, cls_output
+        else:
+            return x
 
 
 def create_padding_mask(seq):
@@ -298,15 +311,30 @@ class PostLN(tf.keras.layers.Layer):
         return snd_out
 
 
+def parse_input(inputs):
+    """Parse input to the top of the mode classes (PostLNDecoder, PreLNDecoder)."""
+    if isinstance(inputs, tuple) or isinstance(inputs, list):
+        assert len(inputs) <= 2
+        lm_inputs = inputs[0]
+        if len(inputs) == 2:
+            cls_ids = inputs[1]
+        else:
+            cls_ids = None
+    else:
+        lm_inputs = inputs
+        cls_ids = None
+    return lm_inputs, cls_ids
+
+
 class PostLNDecoder(tf.keras.Model):
     def __init__(self, config):
         super().__init__()
         self._decoder = Decoder(transformer_cls=PostLN, **config.dict())
 
-    def call(self, inputs, training):
-        look_ahead_mask = create_combined_mask(inputs)
-        x = self._decoder(inputs, training=training, look_ahead_mask=look_ahead_mask)
-        return x
+    def call(self, inputs, training=None):
+        lm_inputs, cls_ids = parse_input(inputs)
+        look_ahead_mask = create_combined_mask(lm_inputs)
+        return self._decoder(inputs=lm_inputs, training=training, look_ahead_mask=look_ahead_mask, cls_ids=cls_ids)
 
 
 # ====== Define PreLNDecoder model ======
@@ -352,7 +380,7 @@ class PreLNDecoder(tf.keras.Model):
         super().__init__()
         self._decoder = Decoder(transformer_cls=PreLN, **config.dict())
 
-    def call(self, inputs, training):
-        look_ahead_mask = create_combined_mask(inputs)
-        x = self._decoder(inputs, training=training, look_ahead_mask=look_ahead_mask)
-        return x
+    def call(self, inputs, training=None):
+        lm_inputs, cls_ids = parse_input(inputs)
+        look_ahead_mask = create_combined_mask(lm_inputs)
+        return self._decoder(inputs=lm_inputs, training=training, look_ahead_mask=look_ahead_mask, cls_ids=cls_ids)
