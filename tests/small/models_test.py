@@ -12,6 +12,7 @@ from tfdlg.models import create_padding_mask
 from tfdlg.models import create_look_ahead_mask
 from tfdlg.models import create_combined_mask
 from tfdlg.models import PostLNDecoder
+from tfdlg.models import PreLNDecoder
 from tfdlg.losses import PaddingLoss
 from tfdlg.configs import Config
 
@@ -213,3 +214,80 @@ def test_PostLNDecoder_fit():
     outputs = inputs
 
     model.fit(inputs, outputs)
+
+
+# Test for the model of classification head
+
+def test_decoder_cls():
+    transformer_cls = PostLN
+    num_layers = 4
+    d_model = 128
+    num_heads = 8
+    d_ff = 256
+    vocab_size = 1000
+    context_size = 100
+
+    decoder = Decoder(transformer_cls, num_layers, d_model, num_heads,
+                      d_ff, vocab_size, context_size,
+                      residual_dropout_rate=0.1,
+                      attention_dropout_rate=0.1,
+                      embedding_dropout_rate=0.1,
+                      activation="relu",
+                      kernel_initializer="he_normal"
+                      )
+
+    batch_size = 2
+    seq_len = 10
+    inputs = np.zeros((batch_size, seq_len), dtype=np.int32)
+    cls_ids = np.ones((batch_size,), dtype=np.int32)
+
+    got_lm, got_cls = decoder(inputs, cls_ids=cls_ids, training=False, look_ahead_mask=None)
+
+    assert got_lm.shape == (batch_size, seq_len, vocab_size)
+    assert got_cls.shape == (batch_size, 1)
+
+
+def helper_Decoder_fit_cls(cls):
+    config = Config(
+        num_layers=4,
+        d_model=128,
+        num_heads=8,
+        d_ff=256,
+        vocab_size=1000,
+        context_size=100,
+        residual_dropout_rate=0.1,
+        attention_dropout_rate=0.1,
+        embedding_dropout_rate=0.1,
+        activation="relu",
+        kernel_initializer="he_normal",
+        epsilon=1e-6,
+    )
+
+    model = cls(config)
+    model.compile(
+        loss=(PaddingLoss(), tf.keras.losses.BinaryCrossentropy(from_logits=True)),
+        optimizer=keras.optimizers.Adam(),
+    )
+
+    # Prepare input data
+    seq_len = 10
+    num_samples = 10
+
+    lm_inputs = np.ones((num_samples, seq_len), dtype=np.int32)
+    lm_outputs = lm_inputs
+
+    cls_ids = np.ones((num_samples,), dtype=np.int32)
+    cls_outputs = np.ones((num_samples,), dtype=np.int32)
+
+    inputs = (lm_inputs, cls_ids)
+    outputs = (lm_outputs, cls_outputs)
+
+    model.fit(inputs, outputs, batch_size=3)
+
+
+def test_PostLNDecoder_fit_cls():
+    helper_Decoder_fit_cls(PostLNDecoder)
+
+
+def test_PreLNDecoder_fit_cls():
+    helper_Decoder_fit_cls(PreLNDecoder)
