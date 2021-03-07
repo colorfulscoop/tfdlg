@@ -84,7 +84,7 @@ class MultiHeadAttention(keras.layers.Layer):
         self._wk = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
         self._wv = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
 
-        # Output dense layer to recover the original demension
+        # Output dense layer
         self._dense = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
 
         # Attention dropout
@@ -122,8 +122,8 @@ class MultiHeadAttention(keras.layers.Layer):
         attn = scaled_dot_product_attention(q, k, v, mask, self._attention_dropout)  # output shape: (batch_size, num_heads, seq_len, d_k)
         attn = tf.transpose(attn, perm=[0, 2, 1, 3])  # output shape: (batch_size, seq_len, num_heads, d_k)
 
-        # Concat attention heads
-        concat_attn = tf.reshape(attn, (batch_size, -1, self._d_model))  # output shape: (batch_size, seq_len, d_k)
+        # Concat attention heads (merge 2nd and 3rd dimensions into one)
+        concat_attn = tf.reshape(attn, (batch_size, -1, self._d_model))  # output shape: (batch_size, seq_len, d_model)
 
         # Apply final dense layer
         output = self._dense(concat_attn)  # output shape: (batch_size, seq_len, d_model)
