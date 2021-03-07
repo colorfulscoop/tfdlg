@@ -80,12 +80,12 @@ class MultiHeadAttention(keras.layers.Layer):
         assert d_model % num_heads == 0
 
         # Define query, key, value matrix
-        self._wq = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
-        self._wk = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
-        self._wv = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
+        self._wq = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
+        self._wk = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
+        self._wv = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
 
         # Output dense layer to recover the original demension
-        self._dense = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (seq_len, d_model)
+        self._dense = tf.keras.layers.Dense(d_model, use_bias=False)  # matrix shape: (d_model, d_model)
 
         # Attention dropout
         # Do not need to set training argument when using with fit function.
@@ -126,7 +126,7 @@ class MultiHeadAttention(keras.layers.Layer):
         concat_attn = tf.reshape(attn, (batch_size, -1, self._d_model))  # output shape: (batch_size, seq_len, d_k)
 
         # Apply final dense layer
-        output = self._dense(concat_attn)  # output shape: (batch_size, seq_len, d_k)
+        output = self._dense(concat_attn)  # output shape: (batch_size, seq_len, d_model)
 
         return output
 
