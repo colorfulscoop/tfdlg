@@ -65,11 +65,11 @@ $ pip install -r requirements.txt
 #### Prepare corpus
 
 In this example, we will use [WikiText-2](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) to train and evaluate a language model.
-tfDlg provides a simple script to download the corpus from the official web site in the [example/wikitext](example/wikitext) directory.
-Use the script [examples/wikitext/get_wikitext.py](tfdlg/examples/wikitext/get_wikitext.py) to download the data first.
+tfDlg provides a simple script to download the corpus from the official web site in the [example/wikitext](example/benchmark-wikitext) directory.
+Use the script [examples/benchmark-wikitext/get_wikitext.py](tfdlg/examples/benchmark-wikitext/get_wikitext.py) to download the data first.
 
 ```sh
-$ python ../examples/wikitext/get_wikitext.py 2_raw
+$ python ../examples/benchmark-wikitext/get_wikitext.py 2_raw
 ```
 
 This command downloads WikiText-2 consisting of raw level tokens. You can find the corpus under the `wikitext-2-raw` directory.
