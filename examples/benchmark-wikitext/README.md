@@ -28,9 +28,9 @@ $ python3 get_wikitext.py 103_raw
 
 ## Result
 
-| Model | Experiment comamnd | Output |
-| --- | --- | --- |
-| PreLNDecoder | `papermill tfdlg_train.ipynb output/tfmodel_train-pre_ln.ipynb -p model_type pre_ln -p batch_size 4 -p fp16 True` | 3.0232 |
+| Model | Experiment comamnd | PPL | Notebook |
+| --- | --- | --- | --- |
+| PreLNDecoder | `papermill tfdlg_train.ipynb output/tfmodel_train-pre_ln.ipynb -p model_type pre_ln -p batch_size 4 -p fp16 True` | 3.0232 | [output/tfmodel_train-pre_ln.ipynb](output/tfmodel_train-pre_ln.ipynb) |
 
 Take a look at Tensorboard to keep track of training process.
 
