@@ -131,23 +131,12 @@ Epoch 10/10
 Validation PPL: 69.238594
 ```
 
-Finally, you can get report of several metrics.
-
-After finishing training, you can try generation after trianing your model.
-After the prompt `>>>`, input your words.
-The model generates words which follows your given words.
-
-```sh
-$ python train_model.py --do_train=False --do_eval=False --do_generate=True --tokenizer_model_dir tokenizer_model --load_model_dir=model --fp16 --memory_growth
->>>
-```
-
 #### Serve web API
 
 The trained model can be serverd as a web API by using the `serve_webapi.py` script.
 
 ```sh
-$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --load_model_dir=model --host="0.0.0.0" --port="8080"
+$ python serve_webapi.py --tokenizer_model_dir=tokenizer_model --model_dir=model --host="0.0.0.0" --port="8080"
 Dataset class: <class 'tfdlg.dialog.data.DialogDataset'>
 INFO:     Started server process [435]
 INFO:     Waiting for application startup.

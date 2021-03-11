@@ -29,9 +29,6 @@ def main(tokenizer_model_dir, task_cls="task.LMTask",
          fp16=False,
          # Set memory growth no to allocate all the memory
          memory_growth=False,
-         # Parameters for do_generate
-         max_len=20,
-         sep_token="|",
          # Tensorboard setting
          tensorboard_dir=None,
          tensorboard_update_freq=100,
@@ -143,29 +140,6 @@ def main(tokenizer_model_dir, task_cls="task.LMTask",
         if do_eval:
             ppl = perplexity(model, valid_dataset)
             print("Validation PPL:", ppl)
-
-    if do_generate:
-        # Generate
-        generator = TopKTopPGenerator(model=model, max_len=max_len)
-        while True:
-            try:
-                text = input(">>> ")
-            except (KeyboardInterrupt, EOFError):
-                print("")
-                print("Bye")
-                break
-            # Tokenize input text.
-            # The input text is splitted at the `sep_token`.
-            # Then splitted texts are tokenized and convertd to ids per wise.
-            # Finally the ids are concatenated with `sep_token_id`
-            ids = dataset.convert_text_to_ids(text=text)
-            output_ids = generator.generate(np.array([ids], dtype=np.int32))
-            output_ids = output_ids[0][len(ids):]
-            tkns = tokenizer.decode(output_ids.tolist())
-            print("Input: ", text)
-            print("Encode:", ids)
-            print("Gen:   ", output_ids)
-            print("Decode:", tkns)
 
 
 if __name__ == "__main__":

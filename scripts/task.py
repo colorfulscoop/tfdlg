@@ -24,7 +24,8 @@ class LMTask:
         return PaddingLoss()
 
     def prepare_tokenizer(self, model_dir):
-        return SentencePieceTokenizer.load(model_dir=model_dir)
+        self._tokenizer = SentencePieceTokenizer.load(model_dir=model_dir)
+        return self._tokenizer
 
     def prepare_dataset(self, filename, encode_fn, batch_size, shuffle,
                         buffer_size=10000):
@@ -40,6 +41,38 @@ class LMTask:
             shuffle=shuffle
         )
         return ds
+
+    def handle_request(self, model, context: List[str], response: str):
+        # Parameters
+        max_len = 20
+
+        # Prepare text to convert to ids
+        ids = []
+        for item in context:
+            ids += self._tokenizer.encode(item)
+        if response:
+            ids += self._tokenizer.encode(response)
+
+        generator = TopKTopPGenerator(model=model, max_len=max_len)
+
+        if len(ids) > 0:
+            output_ids = generator.generate(np.array([ids], dtype=np.int32))
+            output_ids = output_ids[0][len(ids):]
+            output_text = self._tokenizer.decode(output_ids.tolist())
+            print("Input context: ", context)
+            print("Input response: ", response)
+            print("Encode:", ids)
+            print("Gen:   ", output_ids)
+            print("Response:", output_text)
+
+            # [TODO] This will ignore the space which is needed after the given response.
+            if response:
+                output_text = response + output_text
+        else:
+            print("Respond empty string because of empty ids")
+            output_text = ""
+
+        return output_text
 
 
 class DialogTask(LMTask):
