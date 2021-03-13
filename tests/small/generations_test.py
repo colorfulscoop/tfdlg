@@ -103,17 +103,19 @@ def test_TopKTopPGenerator():
         batch_size = 2
         seq_len = 10
         inputs = np.zeros((batch_size, seq_len))
-        outputs = generator.step(inputs)
+        outputs, proba = generator.step(inputs)
 
-        assert outputs.shape == (inputs.shape[0], )
+        assert outputs.shape == (batch_size, )
+        assert proba.shape == (batch_size, )
 
     def test_generation():
         batch_size = 2
         seq_len = 10
         inputs = np.zeros((batch_size, seq_len))
-        outputs = generator.generate(inputs)
+        outputs, proba = generator.generate(inputs)
 
-        assert outputs.shape == (inputs.shape[0], inputs.shape[1]+max_len)
+        assert outputs.shape == (batch_size, seq_len+max_len)
+        assert proba.shape == (batch_size, max_len)
 
     test_step()
     test_generation()

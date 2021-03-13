@@ -119,17 +119,24 @@ class TopKTopPGenerator:
         for flt in filters:
             filtered_dist = flt(filtered_dist)
 
-        return sample_multinomial(filtered_dist)
+        ids = sample_multinomial(filtered_dist)
+
+        logproba = - np.log(softmax(filtered_dist.astype(np.float64)))
+        proba = np.array([logproba[i][idx] for i, idx in enumerate(ids)])
+
+        return ids, proba
 
     def generate(self, inputs):
         need_stop = np.array([False for _ in range(inputs.shape[0])])
+        probas = []
 
         for _ in range(self._max_len):
-            outputs = self.step(inputs)
+            outputs, one_probas = self.step(inputs)
             need_stop = need_stop | (outputs == self._stop_id)
             if self._stop_id is not None and np.all(need_stop):
                 break
 
             outputs = outputs.reshape((inputs.shape[0], 1))
             inputs = np.concatenate([inputs, outputs], axis=-1)
-        return inputs
+            probas.append(one_probas)
+        return inputs, np.array(probas).T
