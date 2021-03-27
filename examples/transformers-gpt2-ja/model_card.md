@@ -58,6 +58,8 @@ Then load the pretrained tokenizer and GPT-2 model, and call a `generate` method
 ['近年の機械学習は、特に、コンピューター学習において重要な概念である。この概念は、教育心理学', '近年の機械学習は時間間隔の短縮、時間間隔の短縮、学習時間の短縮、学習の', '近年の機械学習は、学生と学生が自分の能力を高め、結果を向上させることを目的としている。それは、']
 ```
 
+**Note:** The default model configuration `config.json` sets some generation parameters with `do_sample=True`, `top_k=50`, `top_p=0.95`. Please reset these parameters when you need to set different parameters.
+
 ## License
 
 All the models included in this repository are licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
