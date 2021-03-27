@@ -12,7 +12,7 @@ This repository contains a pretrained SentencePiece tokenizer model and GPT-2 sm
 
 ## Training data
 
-[Japanese Wikipedia](https://ja.wikipedia.org/wiki/Wikipedia:データベースダウンロード) dataset which is released under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/) is used for training both the tokenizer and GPT-2 model as of March 15th, 2021.
+[Japanese Wikipedia](https://ja.wikipedia.org/wiki/Wikipedia:データベースダウンロード) dataset which is released under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/) is used for training both the tokenizer and GPT-2 model as of March 1st, 2021.
 The dataset is splitted into three subsets - train, valid and test. Both of tokenizer and model are trained with the train split.
 
 ## Model description
