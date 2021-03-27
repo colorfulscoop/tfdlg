@@ -38,4 +38,4 @@ After finishing training, the training loss is reached to 3.23, wihle the valida
 
 ## License
 
-All the models included in this repository are distributed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+All the models included in this repository are licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
