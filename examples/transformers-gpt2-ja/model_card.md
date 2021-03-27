@@ -36,7 +36,7 @@ The model is trained on the train split for 10 epochs with batch size 2 and 1024
 Adam optimizer is used. The learning rate is linearly decreased from `1e-4` to `0`. A clip norm is also used to set to `1.0`.
 After finishing training, the training loss is reached to 3.23, wihle the validation loss is reached to 3.50.
 
-All the code to train tokenizer and GPT-2 models are available in [a repository on GitHub](https://github.com/colorfulscoop/tfdlg/tree/master/examples/transformers-gpt2-ja)
+All the code to train tokenizer and GPT-2 models are available in [a repository on GitHub](https://github.com/colorfulscoop/tfdlg/tree/63d9531870af428b747554684b186c6316e34c54/examples/transformers-gpt2-ja)
 
 ## Usage
 
