@@ -36,6 +36,28 @@ The model is trained on the train split for 10 epochs with batch size 2 and 1024
 Adam optimizer is used. The learning rate is linearly decreased from `1e-4` to `0`. A clip norm is also used to set to `1.0`.
 After finishing training, the training loss is reached to 3.23, wihle the validation loss is reached to 3.50.
 
+All the code to train tokenizer and GPT-2 models are available in [a repository on GitHub]()
+
+## Usage
+
+First, install dependecies.
+
+```sh
+$ pip install transformers==4.3.3 torch==1.8.0 sentencepiece==0.1.91
+```
+
+Then load the pretrained tokenizer and GPT-2 model, and call a `generate` method.
+
+```sh
+>>> import transformers
+>>> tokenizer = transformers.AutoTokenizer.from_pretrained("colorfulscoop/gpt2-small-ja")
+>>> model = transformers.AutoModelForCausalLM.from_pretrained("colorfulscoop/gpt2-small-ja")
+>>> input = tokenizer.encode("近年の機械学習は", return_tensors="pt")
+>>> output = model.generate(input, do_sample=True, top_p=0.95, top_k=50, num_return_sequences=3)
+>>> tokenizer.batch_decode(output)
+['近年の機械学習は、特に、コンピューター学習において重要な概念である。この概念は、教育心理学', '近年の機械学習は時間間隔の短縮、時間間隔の短縮、学習時間の短縮、学習の', '近年の機械学習は、学生と学生が自分の能力を高め、結果を向上させることを目的としている。それは、']
+```
+
 ## License
 
 All the models included in this repository are licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
