@@ -1,0 +1,5 @@
+data/
+jawiki/
+output/model
+output/spm
+output/tensorboard
