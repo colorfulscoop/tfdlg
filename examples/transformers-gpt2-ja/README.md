@@ -85,7 +85,6 @@ $ docker container run -w /work -v $(pwd):/work --rm -it python:3.8.6-slim-buste
 ['近年の機械学習は、特に、コンピューター学習において重要な概念である。この概念は、教育心理学', '近年の機械学習は時間間隔の短縮、時間間隔の短縮、学習時間の短縮、学習の', '近年の機械 学習は、学生と学生が自分の能力を高め、結果を向上させることを目的としている。それは、']
 ```
 
-
 ## Upload to model hub
 
 Finally, upload the trained model to HuggingFace's model hub.
@@ -136,6 +135,7 @@ Then, add models and model cards into the cloned directory.
 
 ```sh
 $ cp model_card.md gpt2-small-ja/README.md
+$ cp CHANGELOG.md gpt2-small-ja/
 $ cp output/model/* gpt2-small-ja
 ```
 
