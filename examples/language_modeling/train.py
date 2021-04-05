@@ -108,8 +108,7 @@ class PLModel(pl.LightningModule):
 
 
 def main(
-    tokenizer_model,
-    train_file, valid_file,
+    tokenizer_model, save_model_dir, train_file, valid_file,
     seed=None,
     block_size=1024,
     # [Model config]
@@ -147,12 +146,12 @@ def main(
 
     # Load data
     train_dataset = BlockDataset.from_file(
-        block_size=block_size,
+        block_size=config.n_ctx,
         tokenizer=tokenizer,
         filepath=train_file,
     )
     valid_dataset = BlockDataset.from_file(
-        block_size=block_size,
+        block_size=config.n_ctx,
         tokenizer=tokenizer,
         filepath=valid_file,
     )
@@ -195,7 +194,7 @@ def main(
         ],
     )
     trainer.fit(model=pl_model, train_dataloader=train_loader, val_dataloaders=valid_loader)
-    pl_model.model.save_pretrained("model")
+    pl_model.model.save_pretrained(save_model_dir)
 
 
 if __name__ == "__main__":
