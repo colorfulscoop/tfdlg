@@ -132,7 +132,7 @@ def main(
     # Prepare model
     config = transformers.GPT2Config(
         vocab_size=len(tokenizer),
-        tokenizer_class="BertGenerationTokenizer",
+        tokenizer_class=tokenizer.__class__.__name__,
         bos_token_id=tokenizer.bos_token_id,
         pad_token_id=tokenizer.pad_token_id,
         eos_token_id=tokenizer.eos_token_id,
@@ -184,17 +184,23 @@ def main(
         num_warmup_steps=num_warmup_steps,
         num_training_steps=num_training_steps
     )
+
+    # Setup callbacks
+    callbacks = [
+        pl.callbacks.LearningRateMonitor(),
+    ]
+    if "gpus" in train_options:
+        callbacks.append(pl.callbacks.GPUStatsMonitor())
+
+    # Trainer
     trainer = pl.Trainer(
         **train_options,
         deterministic=True if seed else False,
-        callbacks=[
-            # https://pytorch-lightning.readthedocs.io/en/latest/extensions/callbacks.html
-            pl.callbacks.GPUStatsMonitor(),
-            pl.callbacks.LearningRateMonitor(),
-        ],
+        callbacks=callbacks,
     )
     trainer.fit(model=pl_model, train_dataloader=train_loader, val_dataloaders=valid_loader)
     pl_model.model.save_pretrained(save_model_dir)
+    tokenizer.save_pretrained(save_model_dir)
 
 
 if __name__ == "__main__":
